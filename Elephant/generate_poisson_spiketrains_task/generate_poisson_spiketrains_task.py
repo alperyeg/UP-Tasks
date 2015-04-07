@@ -44,8 +44,8 @@ def generate_poisson_spiketrains_task(rate, number_of_spiketrains, time):
     output_file = 'generate_poisson_spiketrains.h5'
     iom = io.NeoHdf5IO(output_file)
     iom.write(res)
-
-    return generate_poisson_spiketrains_task.task.uri.save_file(mime_type='application/x-hdf', src_path=output_file, dst_path=output_file)
+    iom.close()
+    return generate_poisson_spiketrains_task.task.uri.save_file(mime_type='application/unknown', src_path=output_file, dst_path=output_file)
 
 
 if __name__ == '__main__':

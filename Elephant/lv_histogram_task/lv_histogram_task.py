@@ -47,6 +47,9 @@ def lv_histogram_task(input_data):
         # save result
         res.append(sub_res)
 
+    # Close remaining file h5
+    ion.close()
+
     print res
 
     # Create plot

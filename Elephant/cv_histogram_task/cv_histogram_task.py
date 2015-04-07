@@ -26,7 +26,7 @@ def cv_histogram_task(input_data):
             res: image/png
     '''
 
-    # print input_data
+    print input_data
     ion = io.NeoHdf5IO(input_data)
     number_of_SpikeTrains = ion.get_info()['SpikeTrain']
 
@@ -47,6 +47,9 @@ def cv_histogram_task(input_data):
 
         # save result
         res.append(sub_res)
+
+    # Close remaining file h5
+    ion.close()
 
     print res
 
