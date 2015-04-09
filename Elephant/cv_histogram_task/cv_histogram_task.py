@@ -1,9 +1,12 @@
 #! /usr/bin/env python
 
 import elephant as el
+import matplotlib
+matplotlib.use('Agg')
 import matplotlib.pyplot as plt
 from neo import io
 from active_worker.task import task
+from task_types import TaskTypes as tt
 
 
 @task
@@ -26,8 +29,11 @@ def cv_histogram_task(input_data):
             res: image/png
     '''
 
-    print input_data
-    ion = io.NeoHdf5IO(input_data)
+    # stage the input file
+    original_path = cv_histogram_task.task.uri.get_file(input_data)
+
+    # open file from path using Neo
+    ion = io.NeoHdf5IO(filename=original_path)
     number_of_SpikeTrains = ion.get_info()['SpikeTrain']
 
     # Init result
@@ -74,5 +80,5 @@ def cv_histogram_task(input_data):
 if __name__ == '__main__':
 
     # Run local test
-    filename = 'generate_poisson_spiketrains.h5'
+    filename = tt.URI('application/unknown', 'generate_poisson_spiketrains.h5')
     cv_histogram_task(filename)

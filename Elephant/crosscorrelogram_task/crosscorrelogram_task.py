@@ -5,6 +5,7 @@
 # =============================================================================
 
 from active_worker.task import task
+from task_types import TaskTypes as tt
 import numpy as np
 import h5py
 
@@ -44,7 +45,10 @@ def crosscorrelogram_task(inputdata, number_of_jobs, job_id):
     # Load data
     # =========================================================================
 
-    session = neo.NeoHdf5IO(filename=inputdata)
+    # stage the input file
+    original_path = crosscorrelogram_task.task.uri.get_file(inputdata)
+
+    session = neo.NeoHdf5IO(filename=original_path)
     block = session.read_block()
 
     # select spike trains
@@ -282,6 +286,5 @@ if __name__ == '__main__':
         job_id = 0
 
     # INPUT-first parameter
-    inputdata = 'data/experiment.h5'
-
+    inputdata = tt.URI('application/unknown', 'data/experiment.h5')
     crosscorrelogram_task(inputdata, number_of_jobs, job_id)
