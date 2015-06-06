@@ -1,4 +1,5 @@
 #! /usr/bin/env python
+__author__ = "Long Phan, INM-6, FZJ"
 
 import elephant as el
 import matplotlib

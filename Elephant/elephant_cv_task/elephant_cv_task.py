@@ -1,3 +1,5 @@
+__author__ = "Long Phan, INM-6, FZJ"
+
 import numpy as np
 import h5py
 import matplotlib
