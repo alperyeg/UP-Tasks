@@ -1,12 +1,0 @@
-€}q(Unetwork]q(UNetworkqUtau_maxqUw_meanqUn_layersqUpopsqUn_pops_per_layerqUconfq	Ulayersq
-Uparallel_safeqU
-input_typeqUw_relqUbg_rateqUrecord_corrqUpyseedqUneuron_modelqUrecord_vqUfU	N_scalingqU
-n_record_vqUthalamic_inputqU	K_scalingqUrecord_fractionqUV0_meanqU	w_rel_234qeU	test_yaml]q(UfUdocqUtxt4qUtxt5qUtxt6qUtxt7qUtxt2q Utxt3q!eUmicrocircuit_nest_task]q"(U	K_scalingq#Umicrocircuit_nest_taskq$eUmicrocircuit_working]q%(Ufrac_record_spikesq&U	N_scalingq'Ulayerq(Utau_maxq)U	simulatorq*Upopq+Upopsq,Urecord_fractionq-Uconfq.U	delta_tauq/Ufilenameq0Uend_netwq1Ulayersq2Usource_layerq3U
-start_netwq4Uend_simq5Un_vpq6Uraster_t_maxq7Ufrac_to_plotq8Utarget_layerq9Un_recordq:Ucovq;Ustart_writingq<Uend_writingq=Urecord_corrq>Uraster_t_minq?U	start_simq@Utarget_indexqAUplot_spiking_activityqBUn_recqCUrecord_vqDU
-source_popqEUfUiUcov_allqFUnU
-target_popqGUtUmaster_seedqHUsource_indexqIeUscaling]qJ(UlayersqKUadjust_w_and_ext_to_KqLUw_meanqMUbg_rateqNUfU
-input_typeqOUn_layersqPUpopsqQUn_pops_per_layerqRUconfqSUget_indegreesqTeUmicrocircuit]qU(Ufrac_record_spikesqVU	N_scalingqWUlayerqXUtau_maxqYU	simulatorqZUpopq[Upopsq\Urecord_fractionq]Uconfq^U	delta_tauq_Ufilenameq`Uend_netwqaUlayersqbUsource_layerqcU
-start_netwqdUend_simqeUn_vpqfUraster_t_maxqgUfrac_to_plotqhUtarget_layerqiUn_recordqjUcovqkUstart_writingqlUend_writingqmUrecord_corrqnUraster_t_minqoU	start_simqpUtarget_indexqqUplot_spiking_activityqrUn_recqsUrecord_vqtU
-source_popquUfUiUcov_allqvUnU
-target_popqwUtUmaster_seedqxUsource_indexqyeUconnectivity]qz(UFixedTotalNumberConnectq{U	simulatorq|UfUconfq}Usave_connectionsq~eUnetwork_params]q(Ulayerq€Uw_234qUtau_maxq‚U	simulatorqƒUfull_mean_ratesq„Un_layersq…Upopq†U	w_rel_234q‡Un_pops_per_layerqˆUK_extq‰UlayersqŠUw_meanq‹Ud_sdqŒUfrac_to_plotqUw_relqUraster_t_maxqUbg_rateqUN_fullq‘Uraster_t_minq’U
-conn_probsq“Uthal_paramsq”Uplot_spiking_activityq•UV0_sdq–Uneuron_modelq—U	structureq˜Un_recq™UpopsqšUparams_dictq›UgUfUthalamic_inputqœUV0_meanqUd_meanqUneuron_paramsqŸeUhelper_functions]q (Ulayersq¡Uw_meanq¢Uw_234q£UgUfUn_layersq¤U	simulatorq¥Ucreate_weight_matrixq¦Upopsq§Un_pops_per_layerq¨Uconfq©eUplotting]qª(Ulayersq«UfUn_layersq¬Upopsq­Un_pops_per_layerq®Uplot_raster_barsq¯Uconfq°eu.
