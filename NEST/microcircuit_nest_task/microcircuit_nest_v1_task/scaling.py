@@ -2,10 +2,9 @@
 ### Functions for computing and adjusting connection and input parameters ###
 #############################################################################
 
-# edited: Long Phan
 
 import numpy as np
-# from network_params import *
+
 
 class Scaling:
 

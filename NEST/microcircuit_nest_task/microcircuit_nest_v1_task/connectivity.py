@@ -1,13 +1,10 @@
-# edited: Long Phan
-
-# from network_params import *
 # import random
 # from scipy import stats
 import os
 # import math
 # import pyNN
 # from pyNN.random import RandomDistribution
-# from sim_params import *
+
 
 class Connectivity:
 

@@ -9,8 +9,10 @@ import time
 
 # THIS IS 1-VERSION: that simulation runs with all default-values storaged in
 # file microcircuit.yaml
+
+
 @task
-def microcircuit_nest_bundle_task():
+def microcircuit_nest_v1_task():
     '''
         Task Manifest Version: 1
         Full Name: microcircuit_nest_task
@@ -30,15 +32,13 @@ def microcircuit_nest_bundle_task():
     # load config of microcircuit_model .yaml
     with open('microcircuit.yaml', 'r') as f:
         conf = yaml.load(f)
-    # mc = Init_microcircuit(conf)
 
     filename = 'spiking_activity.png'
-    # plot_filename = conf['system_params']['output_path'] + filename
 
     # create bundle & export bundle, THIS SHOULD BE MIMETYPE of INM-6
     my_bundle_mimetype = "application/vnd.juelich.bundle.nest.data"
 
-    bundle = microcircuit_nest_bundle_task.task.uri.build_bundle(my_bundle_mimetype)
+    bundle = microcircuit_nest_v1_task.task.uri.build_bundle(my_bundle_mimetype)
     results = _run_microcircuit(filename, conf)
 
     for file_fullpath, file_mimetype in results:
@@ -222,4 +222,4 @@ if __name__ == '__main__':
                   [0.0364, 0.001, 0.0034, 0.0005, 0.0277, 0.008, 0.0658, 0.1443
                    ]]
 
-    microcircuit_nest_bundle_task()
+    microcircuit_nest_v1_task()

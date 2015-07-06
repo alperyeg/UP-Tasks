@@ -1,7 +1,3 @@
-# edited: Long Phan
-
-# from network_params import *
-# from sim_params import *
 import numpy as np
 import matplotlib
 matplotlib.use('Agg')

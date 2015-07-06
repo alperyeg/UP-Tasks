@@ -1,12 +1,13 @@
-#
+# ----------------------------------------------------------------------------
 # This file will replace param_files network_params.py and sim_params.py
 # All values will be stored in default_values and get accessed by getter_method
-# . New values will be written by applying setter_method.
+# . New values will be overwritten by applying setter_method.
 # There are 3 versions:
-# (1) only getter-methods to get all values from yaml-file
-# (2) config-file .yaml can be changed by user per hand-edit. Specialized type
-# will be needed ex. application/vnd.juelich.Simulation.NestConfig
-# (3) add setter-methods for some optional chosen variables are input on WUI
+# (1) run simulation only with default_values in config-file .yaml
+# (2) run simulation with config-file .yaml can be changed by user. Specialized
+# type will be needed ex. application/vnd.juelich.Simulation.NestConfig
+# (3) run simulation with some options input from WUI by user
+# ----------------------------------------------------------------------------
 import yaml
 
 

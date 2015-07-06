@@ -1,7 +1,3 @@
-# edited: Long Phan
-
-# from network_params import *
-# from sim_params import *
 from scaling import Scaling
 from connectivity import Connectivity
 from helper_functions import Help_func
@@ -11,12 +7,8 @@ import numpy as np
 # import sys
 
 
-# ------------------------------ Additional Code ----------------------------
-# move these additional code into class
-
-
-# ---------------------------------------------------------------------------
 class Network:
+    # ---------------------- Some additional code ----------------------------
     import yaml
     from Init_microcircuit import Init_microcircuit
     with open('microcircuit.yaml', 'r') as f:
@@ -46,11 +38,12 @@ class Network:
     w_rel_234 = mc.properties['w_rel_234']
     simulator = mc.properties['simulator']
     n_rec = mc.get_n_rec()
+    # ------------------------------------------------------------------------
 
     def __init__(self, sim):
         return None
 
-    def setup(self,sim):
+    def setup(self, sim):
 
         # if parallel_safe=False, PyNN offsets the seeds by 1 for each rank
         script_rng = NumpyRNG(seed=Network.pyseed,

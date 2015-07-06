@@ -6,9 +6,9 @@ Contributor:
 
 Instructions:
     Running this task locally: 
-        -> python microcircuit_nest_bundle_task.py
+        -> python microcircuit_nest_v1_task.py
 
     Output:
-        -> folder Spinnacker will be created with all output-results in format spikes_xy.dat and one file spiking_activity.png describe activities of spikes.
+        -> folder Spinnacker will be created and store all output-results in format spikes_xy.dat and one file spiking_activity.png
 
 Further information about the core-Contributors and original implementation, please read README.txt

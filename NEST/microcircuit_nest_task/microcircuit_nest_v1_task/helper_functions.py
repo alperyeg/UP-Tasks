@@ -1,6 +1,3 @@
-# edited: Long Phan
-
-# from network_params import *
 import numpy as np
 
 
