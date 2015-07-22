@@ -83,6 +83,8 @@ class Network:
         # Network scaling
         if K_scaling != 1:
             self.w, self.w_ext, self.DC_amp = Scaling.adjust_w_and_ext_to_K(K_full, K_scaling, self.w, self.DC_amp, conf)
+        else:
+            self.w_ext = w_mean
 
         Vthresh = {}
         for layer in layers:
