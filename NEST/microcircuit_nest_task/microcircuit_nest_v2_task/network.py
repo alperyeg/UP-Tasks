@@ -166,7 +166,16 @@ class Network:
                 this_pop.initialize('v', V_dist[layer][pop])
 
                 # Spike recording
-                this_pop[0:n_rec[layer][pop]].record()
+                # PYTHON2.6: SINCE SPIKES CANNOT BE RECORDED AT THE MOMENT
+                # USING PYNN'S record(), WE CREATE AND CONNECT SPIKE DETECTORS
+                # WITH PYNEST
+                # this_pop[0:n_rec[layer][pop]].record()
+                sd = sim.nest.Create('spike_detector',
+                                     params={'label': 'spikes_{0}{1}'.format(layer, pop),
+                                             'withtime': True,
+                                             'withgid': True,
+                                             'to_file': True})
+                sim.nest.Connect(list(this_pop[0:n_rec[layer][pop]].all_cells), sd)
 
                 # Membrane potential recording
                 if record_v:
@@ -174,7 +183,16 @@ class Network:
                         n_rec_v = round(this_pop.size * Network.frac_record_v)
                     else :
                         n_rec_v = n_record_v
-                    this_pop[0 : n_rec_v].record_v()
+                    # PYTHON2.6: SINCE VOLTAGES CANNOT BE RECORDED AT THE MOMENT
+                    # USING PYNN'S record_v(), WE CREATE AND CONNECT VOLTMETERS
+                    # WITH PYNEST
+                    # this_pop[0 : n_rec_v].record_v()
+                    vm = sim.nest.Create('voltmeter',
+                                         params={'label': 'voltages_{0}{1}'.format(layer, pop),
+                                                 'withtime': True,
+                                                 'withgid': True,
+                                                 'to_file': True})
+                    sim.nest.Connect(vm, list(this_pop[0 : n_rec_v]))
 
                 # Correlation recording
                 if record_corr and simulator == 'nest':

@@ -9,8 +9,11 @@ import glob
 class Plotting:
 
     @staticmethod
-    def plot_raster_bars(t_start, t_stop, n_rec, frac_to_plot, path, filename,
-                         results, conf):
+    def plot_raster_bars(t_start, t_stop, n_rec, frac_to_plot, network_pops,
+                         path, filename, results, conf):
+        # PYTHON2.6: ADDED ARGUMENT network_pops, NEEDED FOR EXTRACTING FIRST ID
+        # PER POPULATION
+
         layers = conf['layers']
         pops = conf['pops']
         n_layers = conf['n_layers']
@@ -32,6 +35,17 @@ class Plotting:
                     try:
                         spike_array = np.loadtxt(file_name)
                         pop_spike_array = np.vstack((pop_spike_array, spike_array))
+
+                        # PYTHON2.6: SWAPPED SPIKE TIMES AND ID COLUMNS SINCE
+                        # THEY ARE IN DIFFERENT ORDER IN PLAIN NEST .gdf OUTPUT
+                        # AND PYNN OUTPUT
+                        pop_spike_array[:,[0,1]] = pop_spike_array[:,[1,0]]
+                        # PYTHON2.6: IN PYNN, NEURON IDS START WITH 0 IN EACH
+                        # POPULATION AND IN PLAIN NEST, THEY SUM UP.
+                        # SUBTRACT THE FIRST ID OF EACH POPULATION FROM THE NEST
+                        # IDS FOR BEING COMPATIBLE WITH THE FOLLOWING PYNN CODE
+                        first_id = network_pops[layer][pop].first_id
+                        pop_spike_array[:,1] = [gdf_id - first_id for gdf_id in pop_spike_array[:,1]]
                     except IOError:
                         print 'reading spike data from ', file_name, ' failed'
                         pass

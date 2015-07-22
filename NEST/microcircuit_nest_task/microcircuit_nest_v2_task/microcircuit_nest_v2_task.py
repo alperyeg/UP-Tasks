@@ -6,10 +6,16 @@ import matplotlib
 matplotlib.use('Agg')
 import os
 import time
+import glob
 from task_types import TaskTypes as tt
 
 # THIS IS 2-VERSION: that simulation runs with values defined in config-file
 # file microcircuit.yaml
+
+# NOTE: according to an incompatibility with Python2.6, NEST2.6.0 and PyNN0.7.5,
+# connections to spike detectors and voltmeters are here established with
+# PyNEST instead of PyNN. respective code is marked with "PYTHON2.6:"
+# and can be changed back in future versions.
 
 
 @task
@@ -110,7 +116,12 @@ def _run_microcircuit(plot_filename, conf):
                                   'dict_miss_is_error': False,
                                   'grng_seed': master_seed,
                                   'rng_seeds': range(master_seed + 1,
-                                                     master_seed + n_vp + 1)})
+                                                     master_seed + n_vp + 1),
+                                  # PYTHON2.6: FOR WRITING OUTPUT FROM RECORDING
+                                  # DEVICES WITH PYNEST FUNCTIONS, THE OUTPUT PATH
+                                  # IS NOT AUTOMATICALLY THE CWD BUT HAS TO BE SET
+                                  # MANUALLY
+                                  'data_path': conf['system_params']['output_path']})
 
     import network
 
@@ -147,15 +158,22 @@ def _export_data(layers, pops, conf, n, plot_spiking_activity, raster_t_min,
     # result of export-files
     results = []
 
-    for layer in layers:
-        for pop in pops:
-            # filename = conf['system_params']['output_path'] + '/spikes_' + layer + pop + '.dat'
-            filename = conf['system_params']['output_path'] + 'spikes_' + layer + pop + '.dat'
-            n.pops[layer][pop].printSpikes(filename, gather=False)
+    # PYTHON2.6: SPIKE AND VOLTAGE FILES ARE CURRENTLY WRITTEN WHEN A SPIKE DETECTOR
+    # OR A VOLTMETER IS CONNECTED WITH 'to_file': True
+    for output in ['spikes_', 'voltages_']:
+        filestart = conf['system_params']['output_path'] + output + '*'
+        filelist = glob.glob(filestart)
+        #results.extend(filelist)  # TODO adapt to bundle framework
 
-            # add filename and filepath into results
-            subres = (filename, '.dat')
-            results.append(subres)
+    # for layer in layers:
+    #     for pop in pops:
+    #         # filename = conf['system_params']['output_path'] + '/spikes_' + layer + pop + '.dat'
+    #         filename = conf['system_params']['output_path'] + 'spikes_' + layer + pop + '.dat'
+    #         n.pops[layer][pop].printSpikes(filename, gather=False)
+
+    #         # add filename and filepath into results
+    #         subres = (filename, '.dat')
+    #         results.append(subres)
 
     # if record_v:
     #     for layer in layers:
@@ -204,7 +222,7 @@ def _export_data(layers, pops, conf, n, plot_spiking_activity, raster_t_min,
 
     if plot_spiking_activity and sim.rank() == 0:
         complett_result = Plotting.plot_raster_bars(raster_t_min, raster_t_max,
-                                                    n_rec, frac_to_plot,
+                                                    n_rec, frac_to_plot, n.pops,
                                                     conf['system_params']['output_path'],
                                                     plot_filename, results, conf)
 
