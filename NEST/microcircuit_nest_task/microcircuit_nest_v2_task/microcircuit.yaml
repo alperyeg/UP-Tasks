@@ -70,9 +70,9 @@ params_dict:
     # This scaling was not part of the original study, but this option is included
     # here to enable simulations on small systems that give results similar to
     # full-scale simulations.
-    K_scaling: 0.01, 
+    K_scaling: 0.1, 
     # Fraction of neurons to simulate
-    N_scaling: 1.0, 
+    N_scaling: 0.1, 
     # Fraction of neurons from which to record spikes when record_fraction = True
     frac_record_spikes: 1, 
     # Fraction of neurons from which to record membrane potentials when
