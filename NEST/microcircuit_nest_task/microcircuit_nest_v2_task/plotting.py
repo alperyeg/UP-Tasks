@@ -9,7 +9,7 @@ class Plotting:
 
     @staticmethod
     def plot_raster_bars(t_start, t_stop, n_rec, frac_to_plot, network_pops,
-                         path, filename, results, conf):
+                         path, filename, conf):
         # PYTHON2.6: ADDED ARGUMENT network_pops, NEEDED FOR EXTRACTING FIRST
         # ID PER POPULATION
 
@@ -110,9 +110,4 @@ class Plotting:
         axarr[1].set_xlabel('rate (spikes/s)')
 
         filepath = path + filename
-        # print "filepath of plotting = ", filepath
         plt.savefig(filepath)
-        res = (filepath.split('/')[-1],
-               'application/vnd.juelich.bundle.nest.data')
-        results.append(res)
-        return results

@@ -28,10 +28,6 @@ conn_probs:
 - [0.0156, 0.0066, 0.0211, 0.0166, 0.0572, 0.0197, 0.0396, 0.2252]
 - [0.0364, 0.001, 0.0034, 0.0005, 0.0277, 0.008, 0.0658, 0.1443]
 # Means and standard deviations of delays from given source populations (ms)
-# When delay_dist_type is 'uniform', delays are drawn from [d_mean-d_sd, d_mean+d_sd].
-# To approximate the ESS/HMF delays using NEST, use uniform delays with:
-# d_mean = {'E': 2.8, 'I': 2.8}
-# d_sd = {'E': 1.6, 'I': 1.6}
 d_mean: {E: 1.5, I: 0.75}
 d_sd: {E: 0.75, I: 0.375}
 # Fraction of recorded neurons to include in raster plot
@@ -103,7 +99,9 @@ params_dict:
     # Whether to record membrane potentials
     record_v: false, 
     # Whether to save connections to file. See README.txt for known issues with using
-    # save_connections in parallel simulations.
+    # save_connections in parallel simulations. 
+    # Even if save_connections is set to True, connections are not saved because
+    # the output exceeds the user's default capacity on the UP.
     save_connections: false}
 # Parameters for plots of spiking activity
 plot_spiking_activity: true
@@ -137,7 +135,8 @@ thal_params:
     # Note that the rate is erroneously given as 15 spikes/s in the paper.
     # The rate actually provided was 120 spikes/s.
     start: 300.0 # ms
-# Parameters for transient thalamic input
+# Parameters for transient thalamic input.
+# Even if thalamic_input is set to True, currently no thalamic population is generated.
 thalamic_input: false
 # Mean synaptic weight for L4e->L2/3e connections
 # See p. 801 of the paper, second paragraph under 'Model Parameterization',

@@ -49,6 +49,7 @@ class Network:
         structure = mc.properties['structure']
         d_mean = mc.properties['d_mean']
         d_sd = mc.properties['d_sd']
+        frac_record_v = mc.properties['params_dict']['nest']['frac_record_v']
         n_rec = mc.get_n_rec()
 
         # if parallel_safe=False, PyNN offsets the seeds by 1 for each rank
@@ -184,7 +185,7 @@ class Network:
                 # Membrane potential recording
                 if record_v:
                     if record_fraction:
-                        n_rec_v = round(this_pop.size * Network.frac_record_v)
+                        n_rec_v = round(this_pop.size * frac_record_v)
                     else :
                         n_rec_v = n_record_v
                     # PYTHON2.6: SINCE VOLTAGES CANNOT BE RECORDED AT THE MOMENT
@@ -201,25 +202,32 @@ class Network:
 
                 # Correlation recording
                 if record_corr and simulator == 'nest':
-                    index = Network.structure[layer][pop]
+                    index = structure[layer][pop]
                     sim.nest.SetDefaults('static_synapse', {'receptor_type': index})
                     sim.nest.Connect(list(this_pop.all_cells), self.corr_detector)
+                    # PYTHON2.6: reset receptor type because Connect is used
+                    # also for the spike detector and the voltmeter
+                    sim.nest.SetDefaults('static_synapse', {'receptor_type': 0})
 
 
-        if record_corr and simulator == 'nest':
-            # reset receptor_type
-            sim.nest.SetDefaults('static_synapse', {'receptor_type': 0})
 
+        # if record_corr and simulator == 'nest':
+        #     # reset receptor_type
+        #     sim.nest.SetDefaults('static_synapse', {'receptor_type': 0})
+
+        # Currently, no thalamic population is generated.
         if thalamic_input:
+            print " Currently, no thalamic population is generated. "
+            pass
         # Create thalamic population
-            self.thalamic_population = sim.Population(thal_params['n_thal'],
-                                                      sim.SpikeSourcePoisson,
-                                                      {'rate': thal_params['rate'],
-                                                       'start': thal_params['start'],
-                                                       'duration': thal_params['duration']},
-                                                      label='thalamic_population')
-            self.base_neuron_ids[self.thalamic_population] = global_neuron_id
-            global_neuron_id += len(self.thalamic_population) + 2
+        #     self.thalamic_population = sim.Population(thal_params['n_thal'],
+        #                                               sim.SpikeSourcePoisson,
+        #                                               {'rate': thal_params['rate'],
+        #                                                'start': thal_params['start'],
+        #                                                'duration': thal_params['duration']},
+        #                                               label='thalamic_population')
+        #     self.base_neuron_ids[self.thalamic_population] = global_neuron_id
+        #     global_neuron_id += len(self.thalamic_population) + 2
 
         possible_targets_curr = ['inhibitory', 'excitatory']
 
@@ -252,20 +260,22 @@ class Network:
                         conn = sim.OneToOneConnector(weights = w_ext)
                         sim.Projection(poisson_generator, this_target_pop, conn, target = 'excitatory')
 
+                # Currently, no thalamic population is generated.
                 if thalamic_input:
+                    pass
                     # Thalamic inputs
-                    if sim.rank() == 0:
-                        print 'creating thalamic connections to ' + target_layer + target_pop
-                    C_thal = thal_params['C'][target_layer][target_pop]
-                    n_target = N_full[target_layer][target_pop]
-                    K_thal = round(np.log(1 - C_thal) / np.log((n_target * thal_params['n_thal'] - 1.)/ \
-                             (n_target * thal_params['n_thal']))) / n_target * K_scaling
-                    Connectivity.FixedTotalNumberConnect(sim, self.thalamic_population,
-                                                         this_target_pop,
-                                                         K_thal, w_ext,
-                                                         w_rel * w_ext,
-                                                         d_mean['E'],
-                                                         d_sd['E'], conf)
+                    # if sim.rank() == 0:
+                    #     print 'creating thalamic connections to ' + target_layer + target_pop
+                    # C_thal = thal_params['C'][target_layer][target_pop]
+                    # n_target = N_full[target_layer][target_pop]
+                    # K_thal = round(np.log(1 - C_thal) / np.log((n_target * thal_params['n_thal'] - 1.)/ \
+                    #          (n_target * thal_params['n_thal']))) / n_target * K_scaling
+                    # Connectivity.FixedTotalNumberConnect(sim, self.thalamic_population,
+                    #                                      this_target_pop,
+                    #                                      K_thal, w_ext,
+                    #                                      w_rel * w_ext,
+                    #                                      d_mean['E'],
+                    #                                      d_sd['E'], conf)
 
                 # Recurrent inputs
                 for source_layer in layers:

@@ -1,6 +1,6 @@
 # import random
 # from scipy import stats
-import os
+# import os
 # import math
 # import pyNN
 # from pyNN.random import RandomDistribution
@@ -45,32 +45,39 @@ class Connectivity:
         if w_mean < 0:
             syn_dict['weight']['high'] = 0.0
 
-        sim.nest.sli_push(source_neurons)
-        sim.nest.sli_push(target_neurons)
-        sim.nest.sli_push(conn_dict)
-        sim.nest.sli_push(syn_dict)
-        sim.nest.sli_run("Connect")
+        # sim.nest.sli_push(source_neurons)
+        # sim.nest.sli_push(target_neurons)
+        # sim.nest.sli_push(conn_dict)
+        # sim.nest.sli_push(syn_dict)
+        # sim.nest.sli_run("Connect")
+        sim.nest.Connect(source_neurons, target_neurons, conn_dict, syn_dict)
+
 
         if save_connections:
+            print "save_connections was set to True but connections are \
+            currently not saved because the output exceeds the user's default \
+                capacity of the UP."
+            pass
+
             # - weights are in pA
             # - no header lines
             # - one file for each MPI process
             # - GIDs
 
             # get connections to target on this MPI process
-            conn = sim.nest.GetConnections(source=source_neurons,
-                                           target=target_neurons)
-            conns = sim.nest.GetStatus(conn, ['source', 'target', 'weight',
-                                              'delay'])
-            if not os.path.exists(conf['system_params']['conn_dir']):
-                try:
-                    os.makedirs(conf['system_params']['conn_dir'])
-                except OSError, e:
-                    if e.errno != 17:
-                        raise
-                    pass
-            f = open(conf['system_params']['conn_dir'] + '/' + pop1.label +
-                     "_" + pop2.label + '.conn' + str(sim.rank()), 'w')
-            for c in conns:
-                print >> f, str(c).replace('(', '').replace(')', '').replace(', ', '\t')
-            f.close()
+            # conn = sim.nest.GetConnections(source=source_neurons,
+            #                                target=target_neurons)
+            # conns = sim.nest.GetStatus(conn, ['source', 'target', 'weight',
+            #                                   'delay'])
+            # if not os.path.exists(conf['system_params']['output_path']):
+            #     try:
+            #         os.makedirs(conf['system_params']['conn_dir'])
+            #     except OSError, e:
+            #         if e.errno != 17:
+            #             raise
+            #         pass
+            # f = open(conf['system_params']['output_path'] + '/' + pop1.label +
+            #          "_" + pop2.label + '.conn' + str(sim.rank()), 'w')
+            # for c in conns:
+            #     print >> f, str(c).replace('(', '').replace(')', '').replace(', ', '\t')
+            # f.close()
