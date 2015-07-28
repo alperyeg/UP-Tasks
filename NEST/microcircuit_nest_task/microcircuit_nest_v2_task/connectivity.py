@@ -12,8 +12,8 @@ class Connectivity:
     def FixedTotalNumberConnect(sim, pop1, pop2, K, w_mean, w_sd, d_mean, d_sd,
                                 conf):
         """
-            Function connecting two populations with multapses and a fixed total
-            number of synapses Using new NEST implementation of Connect
+            Function connecting two populations with multapses and a fixed
+            total number of synapses Using new NEST implementation of Connect
         """
 
         simulator = conf['simulator']
@@ -25,26 +25,25 @@ class Connectivity:
         target_neurons = list(pop2.all_cells)
         n_syn = int(round(K*len(target_neurons)))
 
-        # weights are multiplied by 1000 because NEST uses pA whereas PyNN uses nA
-        # RandomPopulationConnectD is called on each process with the full sets of
-        # source and target neurons, and internally only connects the target
-        # neurons on the current process.
+        # weights are multiplied by 1000 because NEST uses pA whereas PyNN
+        # uses nA RandomPopulationConnectD is called on each process with the
+        # full sets of source and target neurons, and internally only connects
+        # the target neurons on the current process.
 
-        conn_dict = {'rule' : 'fixed_total_number',
-                     'N'    : n_syn}
+        conn_dict = {'rule': 'fixed_total_number', 'N': n_syn}
 
-        syn_dict = {'model' : 'static_synapse',
+        syn_dict = {'model': 'static_synapse',
                     'weight': {'distribution': 'normal_clipped',
                                'mu': 1000. * w_mean,
                                'sigma': 1000. * w_sd},
-                    'delay' : {'distribution': 'normal_clipped',
-                               'low': conf['simulator_params'][simulator]['min_delay'],
-                               'mu': d_mean,
-                               'sigma': d_sd}}
+                    'delay': {'distribution': 'normal_clipped',
+                              'low': conf['simulator_params'][simulator]['min_delay'],
+                              'mu': d_mean,
+                              'sigma': d_sd}}
         if w_mean > 0:
-           syn_dict['weight']['low'] = 0.0
+            syn_dict['weight']['low'] = 0.0
         if w_mean < 0:
-           syn_dict['weight']['high'] = 0.0
+            syn_dict['weight']['high'] = 0.0
 
         sim.nest.sli_push(source_neurons)
         sim.nest.sli_push(target_neurons)
@@ -59,8 +58,10 @@ class Connectivity:
             # - GIDs
 
             # get connections to target on this MPI process
-            conn = sim.nest.GetConnections(source=source_neurons, target=target_neurons)
-            conns = sim.nest.GetStatus(conn, ['source', 'target', 'weight', 'delay'])
+            conn = sim.nest.GetConnections(source=source_neurons,
+                                           target=target_neurons)
+            conns = sim.nest.GetStatus(conn, ['source', 'target', 'weight',
+                                              'delay'])
             if not os.path.exists(conf['system_params']['conn_dir']):
                 try:
                     os.makedirs(conf['system_params']['conn_dir'])
@@ -68,8 +69,8 @@ class Connectivity:
                     if e.errno != 17:
                         raise
                     pass
-            f = open(conf['system_params']['conn_dir'] +  '/' + pop1.label + "_" + \
-                     pop2.label + '.conn' + str(sim.rank()), 'w')
+            f = open(conf['system_params']['conn_dir'] + '/' + pop1.label +
+                     "_" + pop2.label + '.conn' + str(sim.rank()), 'w')
             for c in conns:
-                print >> f, str(c).replace('(','').replace(')','').replace(', ', '\t')
+                print >> f, str(c).replace('(', '').replace(')', '').replace(', ', '\t')
             f.close()

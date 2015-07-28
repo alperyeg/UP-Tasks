@@ -120,11 +120,7 @@ structure:
   L4: {E: 2, I: 3}
   L5: {E: 4, I: 5}
   L6: {E: 6, I: 7}
-system_params: {backend_path: /users/albada/nest-2.6.0_install/lib64/python2.6/site-packages,
-  conn_dir: ./conns, errfile: errors.txt, memory: 4gb, mpi_path: /usr/local/mpi/openmpi/1.4.3/gcc64/bin/mpivars_openmpi-1.4.3_gcc64.sh,
-  n_nodes: 1, n_procs_per_node: 24, outfile: output.txt, output_path: ./spinnaker/PyNN/,
-  pyNN_path: /users/albada/PyNN-0.7.5_install_hambach/lib/python2.6/site-packages,
-  submit_cmd: qsub, walltime: '8:0:0'}
+system_params: {output_path: ./}
 # Maximum delay over which to determine covariances
 tau_max: 100.0
 thal_params:

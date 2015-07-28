@@ -63,13 +63,12 @@ class Network:
                 for target_pop in pops:
                     self.DC_amp[target_layer][target_pop] = bg_rate * K_ext[target_layer][target_pop] * w_mean * tau_syn_E / 1000.
         else:
-            self.DC_amp = {'L23': {'E':0., 'I':0.},
-                           'L4' : {'E':0., 'I':0.},
-                           'L5' : {'E':0., 'I':0.},
-                           'L6' : {'E':0., 'I':0.}}
+            self.DC_amp = {'L23': {'E': 0., 'I': 0.},
+                           'L4': {'E': 0., 'I': 0.},
+                           'L5': {'E': 0., 'I': 0.},
+                           'L6': {'E': 0., 'I': 0.}}
 
         # In-degrees of the full-scale and scaled models
-        # sc = Scaling()
         K_full = Scaling.get_indegrees(conf)
         self.K = K_scaling * K_full
 
@@ -109,8 +108,10 @@ class Network:
         for layer in layers:
             V_dist[layer] = {}
             for pop in pops:
-                V_dist[layer][pop] = RandomDistribution( \
-                    'normal', [V0_mean[layer][pop], V0_sd[layer][pop]], rng=script_rng)
+                V_dist[layer][pop] = RandomDistribution('normal',
+                                                        [V0_mean[layer][pop],
+                                                         V0_sd[layer][pop]],
+                                                        rng=script_rng)
 
         model = getattr(sim, neuron_model)
 
@@ -118,9 +119,10 @@ class Network:
             # Create correlation recording device
             sim.nest.SetDefaults('correlomatrix_detector', {'delta_tau': 0.5})
             self.corr_detector = sim.nest.Create('correlomatrix_detector')
-            sim.nest.SetStatus(self.corr_detector, {'N_channels': n_layers*n_pops_per_layer, \
-                                                    'tau_max': tau_max, 'Tstart': tau_max})
-
+            sim.nest.SetStatus(self.corr_detector, {'N_channels': n_layers*n_pops_per_layer,
+                                                    'tau_max': tau_max,
+                                                    'Tstart': tau_max,
+                                                    })
 
         if sim.rank() == 0:
             print 'neuron_params:', mc.properties['neuron_params']
@@ -141,19 +143,20 @@ class Network:
                         print 'Note that requested number of neurons to record exceeds ', \
                                layer, pop, ' population size'
 
-
         # Create cortical populations
         self.pops = {}
         global_neuron_id = 1
         self.base_neuron_ids = {}
+        device_list = []
         for layer in layers:
             self.pops[layer] = {}
             for pop in pops:
                 cellparams = neuron_params
 
-                self.pops[layer][pop] = sim.Population( \
-                    int(round(N_full[layer][pop] * N_scaling)), \
-                    model, cellparams=cellparams, label=layer+pop)
+                self.pops[layer][pop] = sim.Population(int(round(N_full[layer][pop] * N_scaling)),
+                                                       model,
+                                                       cellparams=cellparams,
+                                                       label=layer+pop)
                 this_pop = self.pops[layer][pop]
 
                 # Provide DC input in the current-based case
@@ -175,6 +178,7 @@ class Network:
                                              'withtime': True,
                                              'withgid': True,
                                              'to_file': True})
+                device_list.append(sd)
                 sim.nest.Connect(list(this_pop[0:n_rec[layer][pop]].all_cells), sd)
 
                 # Membrane potential recording
@@ -192,6 +196,7 @@ class Network:
                                                  'withtime': True,
                                                  'withgid': True,
                                                  'to_file': True})
+                    device_list.append(vm)
                     sim.nest.Connect(vm, list(this_pop[0 : n_rec_v]))
 
                 # Correlation recording
@@ -207,10 +212,12 @@ class Network:
 
         if thalamic_input:
         # Create thalamic population
-            self.thalamic_population = sim.Population( \
-                thal_params['n_thal'], sim.SpikeSourcePoisson, {'rate': thal_params['rate'], \
-                'start': thal_params['start'], 'duration': thal_params['duration']}, \
-                label='thalamic_population')
+            self.thalamic_population = sim.Population(thal_params['n_thal'],
+                                                      sim.SpikeSourcePoisson,
+                                                      {'rate': thal_params['rate'],
+                                                       'start': thal_params['start'],
+                                                       'duration': thal_params['duration']},
+                                                      label='thalamic_population')
             self.base_neuron_ids[self.thalamic_population] = global_neuron_id
             global_neuron_id += len(self.thalamic_population) + 2
 
@@ -253,9 +260,12 @@ class Network:
                     n_target = N_full[target_layer][target_pop]
                     K_thal = round(np.log(1 - C_thal) / np.log((n_target * thal_params['n_thal'] - 1.)/ \
                              (n_target * thal_params['n_thal']))) / n_target * K_scaling
-                    Connectivity.FixedTotalNumberConnect(sim, self.thalamic_population, \
-                        this_target_pop, K_thal, w_ext, w_rel * w_ext, \
-                        d_mean['E'], d_sd['E'], conf)
+                    Connectivity.FixedTotalNumberConnect(sim, self.thalamic_population,
+                                                         this_target_pop,
+                                                         K_thal, w_ext,
+                                                         w_rel * w_ext,
+                                                         d_mean['E'],
+                                                         d_sd['E'], conf)
 
                 # Recurrent inputs
                 for source_layer in layers:
@@ -264,7 +274,7 @@ class Network:
                         this_source_pop = self.pops[source_layer][source_pop]
                         weight = self.w[target_index][source_index]
 
-                        conn_type = possible_targets_curr[int((np.sign(weight)+1)/2)]
+                        possible_targets_curr[int((np.sign(weight)+1)/2)]
 
                         if sim.rank() == 0:
                             print 'creating connections from ' + source_layer + \
@@ -275,7 +285,13 @@ class Network:
                         else:
                             w_sd = abs(weight * w_rel)
 
-                        Connectivity.FixedTotalNumberConnect( \
-                            sim, this_source_pop, this_target_pop, \
-                            self.K[target_index][source_index], weight, w_sd, \
-                            d_mean[source_pop], d_sd[source_pop], conf)
+                        Connectivity.FixedTotalNumberConnect(sim,
+                                                             this_source_pop,
+                                                             this_target_pop,
+                                                             self.K[target_index][source_index],
+                                                             weight, w_sd,
+                                                             d_mean[source_pop]
+                                                             , d_sd[source_pop]
+                                                             , conf)
+
+        return device_list

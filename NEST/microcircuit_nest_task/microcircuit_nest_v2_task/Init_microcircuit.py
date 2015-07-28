@@ -81,15 +81,6 @@ def init_config():
 
 
 if __name__ == "__main__":
-    # test = Init_microcircuit()
-    # print test.get_K_scaling()
-    # print test.get_N_scaling()
-
-    # load .yaml file
-    # with open('microcircuit.yaml', 'r') as f:
-    #     conf = yaml.load(f)
-
-    # mc = Init_microcircuit(conf)
     mc = init_config()
 
     with open('microcircuit.yaml', 'r') as f:
