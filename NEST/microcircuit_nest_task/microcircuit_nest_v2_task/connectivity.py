@@ -1,11 +1,3 @@
-# import random
-# from scipy import stats
-# import os
-# import math
-# import pyNN
-# from pyNN.random import RandomDistribution
-
-
 class Connectivity:
 
     @staticmethod
@@ -25,11 +17,6 @@ class Connectivity:
         target_neurons = list(pop2.all_cells)
         n_syn = int(round(K*len(target_neurons)))
 
-        # weights are multiplied by 1000 because NEST uses pA whereas PyNN
-        # uses nA RandomPopulationConnectD is called on each process with the
-        # full sets of source and target neurons, and internally only connects
-        # the target neurons on the current process.
-
         conn_dict = {'rule': 'fixed_total_number', 'N': n_syn}
 
         syn_dict = {'model': 'static_synapse',
@@ -45,18 +32,13 @@ class Connectivity:
         if w_mean < 0:
             syn_dict['weight']['high'] = 0.0
 
-        # sim.nest.sli_push(source_neurons)
-        # sim.nest.sli_push(target_neurons)
-        # sim.nest.sli_push(conn_dict)
-        # sim.nest.sli_push(syn_dict)
-        # sim.nest.sli_run("Connect")
         sim.nest.Connect(source_neurons, target_neurons, conn_dict, syn_dict)
 
 
         if save_connections:
-            print "save_connections was set to True but connections are \
-            currently not saved because the output exceeds the user's default \
-                capacity of the UP."
+            print "save_connections was set to True, but connections are \
+                currently not saved because the output exceeds the user's \
+                default capacity of the UP."
             pass
 
             # - weights are in pA
@@ -76,8 +58,10 @@ class Connectivity:
             #         if e.errno != 17:
             #             raise
             #         pass
-            # f = open(conf['system_params']['output_path'] + '/' + pop1.label +
-            #          "_" + pop2.label + '.conn' + str(sim.rank()), 'w')
+            # f = open(conf['system_params']['output_path'] + '/' + 'conn_' + pop1.label +
+            #          '_' + pop2.label + '_' + str(sim.rank())'.dat' , 'w')
             # for c in conns:
             #     print >> f, str(c).replace('(', '').replace(')', '').replace(', ', '\t')
             # f.close()
+
+        return

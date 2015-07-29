@@ -5,7 +5,6 @@ import matplotlib
 matplotlib.use('Agg')
 import time
 import numpy as np
-# import glob
 from task_types import TaskTypes as tt
 
 # The simulation runs with values defined in config-file microcircuit.yaml
@@ -74,7 +73,7 @@ def _run_microcircuit(plot_filename, conf):
     # prepare simulation
     logging.basicConfig()
 
-    # Extract parameter from config-parameter
+    # extract parameters from config-parameter
     master_seed = mc.properties['params_dict']['nest']['master_seed']
     layers = mc.properties['layers']
     pops = mc.properties['pops']
@@ -87,7 +86,6 @@ def _run_microcircuit(plot_filename, conf):
 
     frac_to_plot = conf['frac_to_plot']
     record_corr = conf['params_dict']['nest']['record_corr']
-    simulator = conf['simulator']
     tau_max = conf['tau_max']
     sim.setup(**conf['simulator_params'][simulator])
 
@@ -123,7 +121,7 @@ def _run_microcircuit(plot_filename, conf):
     if sim.rank() == 0:
         print 'Creating the network took ', end_netw - start_netw, ' s'
 
-    # Simulate
+    # simulate
     if sim.rank() == 0:
         print "Simulating..."
     start_sim = time.time()
@@ -132,14 +130,14 @@ def _run_microcircuit(plot_filename, conf):
     if sim.rank() == 0:
         print 'Simulation took ', end_sim - start_sim, ' s'
 
-    # Extract filename from device_list
+    # extract filename from device_list
     for dev in device_list:
         fname_export = sim.nest.GetStatus(dev)[0]['filenames'][0]
         filename = fname_export.split('/')[-1]
         res = (filename, 'application/vnd.juelich.bundle.nest.data')
         results.append(res)
 
-    start_writing = time.time()
+    # start_writing = time.time()
 
     # PYTHON2.6: SPIKE AND VOLTAGE FILES ARE CURRENTLY WRITTEN WHEN A SPIKE
     # DETECTOR OR A VOLTMETER IS CONNECTED WITH 'to_file': True
@@ -162,7 +160,7 @@ def _run_microcircuit(plot_filename, conf):
 
 
     if record_corr and simulator == 'nest':
-        # print "record_corr was set to True but reording correlations is currently disabled."
+        start_corr = time.time()
         if sim.nest.GetStatus(n.corr_detector, 'local')[0]:
             print 'getting count_covariance on rank ', sim.rank()
             cov_all = sim.nest.GetStatus(n.corr_detector, 'count_covariance')[0]
@@ -203,8 +201,11 @@ def _run_microcircuit(plot_filename, conf):
                        'application/vnd.juelich.bundle.nest.data')
             results.append(res_cov)
 
-    end_writing = time.time()
-    print "Writing data took ", end_writing - start_writing, " s"
+        end_corr = time.time()
+        print "Writing covariances took ", end_corr - start_corr, " s"
+
+    # end_writing = time.time()
+    # print "Writing data took ", end_writing - start_writing, " s"
 
     if plot_spiking_activity and sim.rank() == 0:
         Plotting.plot_raster_bars(raster_t_min, raster_t_max, n_rec,

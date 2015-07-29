@@ -12,7 +12,6 @@ class Help_func:
         w_234 = conf['w_234']
         w_mean = conf['w_mean']
         g = conf['g']
-        # simulator = conf['simulator']
 
         w = np.zeros([n_layers * n_pops_per_layer, n_layers * n_pops_per_layer])
         for target_layer in layers:

@@ -1,10 +1,8 @@
 from scaling import Scaling
 from connectivity import Connectivity
 from helper_functions import Help_func
-# import pyNN
 from pyNN.random import NumpyRNG, RandomDistribution
 import numpy as np
-# import sys
 
 
 class Network:
@@ -16,6 +14,7 @@ class Network:
         from Init_microcircuit import Init_microcircuit
         mc = Init_microcircuit(conf)
 
+        # extract parameters
         pyseed = mc.properties['params_dict']['nest']['pyseed']
         parallel_safe = mc.properties['params_dict']['nest']['parallel_safe']
         input_type = mc.properties['params_dict']['nest']['input_type']
