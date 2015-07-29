@@ -209,16 +209,25 @@ class Network:
                     # also for the spike detector and the voltmeter
                     sim.nest.SetDefaults('static_synapse', {'receptor_type': 0})
 
-
-
         # if record_corr and simulator == 'nest':
         #     # reset receptor_type
         #     sim.nest.SetDefaults('static_synapse', {'receptor_type': 0})
 
-        # Currently, no thalamic population is generated.
+
+        # Currently, we get an error if we try to generate a population with
+        # sim.SpikeSourcePoisson elements. Therefore, thalamic neurons are
+        # created via PyNEST in this version
         if thalamic_input:
-            print " Currently, no thalamic population is generated. "
-            pass
+            self.thalamic_population = sim.nest.Create('parrot_neuron',
+                                                       thal_params['n_thal'])
+            # create and connect a poisson generator for stimulating the
+            # thalamic population
+            thal_pg = sim.nest.Create('poisson_generator',
+                                      params={'rate': thal_params['rate'],
+                                              'start': thal_params['start'],
+                                              'stop': thal_params['start'] + thal_params['duration']})
+            sim.nest.Connect(thal_pg, self.thalamic_population)
+
         # Create thalamic population
         #     self.thalamic_population = sim.Population(thal_params['n_thal'],
         #                                               sim.SpikeSourcePoisson,
@@ -260,16 +269,32 @@ class Network:
                         conn = sim.OneToOneConnector(weights = w_ext)
                         sim.Projection(poisson_generator, this_target_pop, conn, target = 'excitatory')
 
-                # Currently, no thalamic population is generated.
                 if thalamic_input:
-                    pass
-                    # Thalamic inputs
-                    # if sim.rank() == 0:
-                    #     print 'creating thalamic connections to ' + target_layer + target_pop
-                    # C_thal = thal_params['C'][target_layer][target_pop]
-                    # n_target = N_full[target_layer][target_pop]
-                    # K_thal = round(np.log(1 - C_thal) / np.log((n_target * thal_params['n_thal'] - 1.)/ \
-                    #          (n_target * thal_params['n_thal']))) / n_target * K_scaling
+                    if sim.rank() == 0:
+                        print 'creating thalamic connections to ' + target_layer + target_pop
+                    C_thal = thal_params['C'][target_layer][target_pop]
+                    n_target = N_full[target_layer][target_pop]
+                    K_thal = round(np.log(1 - C_thal) / np.log((n_target * thal_params['n_thal'] - 1.)/ \
+                             (n_target * thal_params['n_thal']))) / n_target * K_scaling
+
+                    # Currently, the thalamic populations is created with PyNEST
+                    # (it is not a PyNN Population)
+                    # and has to be connected to the cortical neurons similar to
+                    # FixedTotalNumberConnect()
+                    target_neurons = list(this_target_pop.all_cells)
+                    n_syn = int(round(K_thal*len(target_neurons)))
+                    conn_dict = {'rule': 'fixed_total_number', 'N': n_syn}
+                    syn_dict = {'model': 'static_synapse',
+                                'weight': {'distribution': 'normal_clipped',
+                                           'mu': 1000. * w_ext,
+                                           'sigma': 1000. * w_rel*w_ext},
+                                'delay': {'distribution': 'normal_clipped',
+                                          'low': conf['simulator_params'][simulator]['min_delay'],
+                                          'mu': d_mean['E'],
+                                          'sigma': d_sd['E']}}
+                    sim.nest.Connect(self.thalamic_population, target_neurons,
+                                     conn_dict, syn_dict)
+
                     # Connectivity.FixedTotalNumberConnect(sim, self.thalamic_population,
                     #                                      this_target_pop,
                     #                                      K_thal, w_ext,
