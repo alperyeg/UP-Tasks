@@ -19,11 +19,13 @@ from task_types import TaskTypes as tt
 def microcircuit_task(config_file):
     '''
         Task Manifest Version: 1
-        Full Name: microcircuit_nest_task
+        Full Name: microcircuit_task
         Caption: Microcircuit model
-        Author: NEST_Developer and Contributors
+        Author: Johanna Senk, Sacha van Albada and Contributors
         Description: |
-            Microcircuit model
+            Cortical microcircuit simulation: PyNN version modified to run as
+            task on the Unified Portal. Input arguments are defined in
+            microcircuit.yaml and can be modified by the user.
         Categories:
             - NEST
         Compatible_queues: ['cscs_viz', 'cscs_bgq', 'epfl_viz']
@@ -158,7 +160,6 @@ def _run_microcircuit(plot_filename, conf):
     #             filename = conf['system_params']['output_path'] + '/voltages_' + layer + pop + '.dat'
     #             n.pops[layer][pop].print_v(filename, gather=False)
 
-
     if record_corr and simulator == 'nest':
         start_corr = time.time()
         if sim.nest.GetStatus(n.corr_detector, 'local')[0]:
@@ -174,8 +175,8 @@ def _run_microcircuit(plot_filename, conf):
                     for source_layer in np.sort(layers.keys()):
                         for source_pop in pops:
                             source_index = conf['structure'][source_layer][source_pop]
-                            cov[target_index][source_index] = np.array(list(cov_all[target_index][source_index][::-1]) \
-                            + list(cov_all[source_index][target_index][1:]))
+                            cov[target_index][source_index] = np.array(list(cov_all[target_index][source_index][::-1])
+                                                                       + list(cov_all[source_index][target_index][1:]))
 
             f = open(conf['system_params']['output_path'] + '/covariances.dat', 'w')
             print >>f, 'tau_max: ', tau_max
