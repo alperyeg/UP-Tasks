@@ -26,8 +26,8 @@ def microcircuit_task(config_file):
             Multi-layer microcircuit model of early sensory cortex
             (Potjans, T. C., & Diesmann, M. (2014) Cerebral Cortex 24(3):785-806).
             PyNN version modified to run as task on the Unified Portal.
-            Input arguments are defined in microcircuit.yaml and can be downloaded from 
-            https://github.com/INM-6/UP-Tasks/tree/master/NEST/microcircuit_nest_task/microcircuit_nest_v2_task/microcircuit.yaml 
+            Input arguments are defined in microcircuit.yaml and can be downloaded from
+            https://github.com/INM-6/UP-Tasks/blob/master/NEST/microcircuit_task/microcircuit.yaml
             , modified, uploaded to the UP and selected as 'config_file'
             for running a simulation.
         Categories:
