@@ -253,20 +253,15 @@ class Network:
                     # create only a single Poisson generator for each population,
                     # since the native NEST implementation sends independent spike trains to all targets
                         if sim.rank() == 0:
-                            print 'connecting Poisson generator to', target_layer, target_pop, ' via SLI'
-                        sim.nest.sli_run('/poisson_generator Create /poisson_generator_e Set poisson_generator_e << /rate ' \
-                            + str(rate) + ' >> SetStatus')
+                            print 'connecting Poisson generator to', target_layer, target_pop
 
-                        sim.nest.sli_run("[ poisson_generator_e ] " + str(list(this_target_pop.all_cells)).replace(',', '') \
-                            + " /all_to_all << /model /static_synapse /weight " + str(1000 * w_ext) \
-                            + " /delay " + str(d_mean['E']) + " >> Connect")
-                    else : # simulators other than NEST
-                        if sim.rank() == 0:
-                            print 'connecting Poisson generators to', target_layer, target_pop
-                        poisson_generator = sim.Population(this_target_pop.size, \
-                            sim.SpikeSourcePoisson, {'rate': rate})
-                        conn = sim.OneToOneConnector(weights = w_ext)
-                        sim.Projection(poisson_generator, this_target_pop, conn, target = 'excitatory')
+                        pg = sim.nest.Create('poisson_generator', params={'rate': rate})
+
+                        conn_dict = {'rule': 'all_to_all'}
+                        syn_dict = {'model': 'static_synapse',
+                                    'weight': 1000. * w_ext,
+                                    'delay': d_mean['E']}
+                        sim.nest.Connect(pg, list(this_target_pop.all_cells), conn_dict, syn_dict) 
 
                 if thalamic_input:
                     if sim.rank() == 0:
