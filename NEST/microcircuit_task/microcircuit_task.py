@@ -4,6 +4,7 @@ import yaml
 import matplotlib
 matplotlib.use('Agg')
 import time
+import glob
 import numpy as np
 from task_types import TaskTypes as tt
 
@@ -123,6 +124,7 @@ def _run_microcircuit(plot_filename, conf):
     # device_list contains the GIDs of spike detectors and voltmeters
     # needed for retrieving filenames later
     device_list = n.setup(sim, conf)
+    
     end_netw = time.time()
     if sim.rank() == 0:
         print 'Creating the network took ', end_netw - start_netw, ' s'
@@ -136,12 +138,18 @@ def _run_microcircuit(plot_filename, conf):
     if sim.rank() == 0:
         print 'Simulation took ', end_sim - start_sim, ' s'
 
-    # extract filename from device_list
+    # extract filename from device_list (spikedetector/voltmeter)
     for dev in device_list:
-        fname_export = sim.nest.GetStatus(dev)[0]['filenames'][0]
-        filename = fname_export.split('/')[-1]
-        res = (filename, 'application/vnd.juelich.bundle.nest.data')
-        results.append(res)
+        label = sim.nest.GetStatus(dev)[0]['label']
+        filenames = glob.glob(label + '*')
+        extension = sim.nest.GetStatus(dev)[0]['file_extension']
+        filetype = 'text/plain'
+        # TODO: add types dependent on extension
+        # as soon as they are registered
+        for fname in filenames:
+            res = (fname, filetype)
+            results.append(res)
+
 
     # start_writing = time.time()
 
@@ -203,7 +211,7 @@ def _run_microcircuit(plot_filename, conf):
 
             # add file covariances.dat into bundle
             res_cov = ('covariances.dat',
-                       'application/vnd.juelich.bundle.nest.data')
+                       'text/plain')
             results.append(res_cov)
 
         end_corr = time.time()
@@ -217,7 +225,7 @@ def _run_microcircuit(plot_filename, conf):
                                   frac_to_plot, n.pops,
                                   conf['system_params']['output_path'],
                                   plot_filename, conf)
-        res_plot = (plot_filename, 'application/vnd.juelich.bundle.nest.data')
+        res_plot = (plot_filename, 'image/png')
         results.append(res_plot)
 
     sim.end()
