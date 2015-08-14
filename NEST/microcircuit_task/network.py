@@ -10,46 +10,47 @@ class Network:
     def __init__(self, sim):
         return None
 
+
     def setup(self, sim, conf):
         from Init_microcircuit import Init_microcircuit
         mc = Init_microcircuit(conf)
 
         # extract parameters
-        pyseed = mc.properties['params_dict']['nest']['pyseed']
-        parallel_safe = mc.properties['params_dict']['nest']['parallel_safe']
-        input_type = mc.properties['params_dict']['nest']['input_type']
-        layers = mc.properties['layers']
-        pops = mc.properties['pops']
-        bg_rate = mc.properties['bg_rate']
-        w_mean = mc.properties['w_mean']
-        K_scaling = mc.properties['params_dict']['nest']['K_scaling']
-        N_scaling = mc.properties['params_dict']['nest']['N_scaling']
-        n_record = mc.properties['params_dict']['nest']['n_record']
-        neuron_model = mc.properties['neuron_model']
-        tau_max = mc.properties['tau_max']
-        record_corr = mc.properties['params_dict']['nest']['record_corr']
-        n_layers = mc.properties['n_layers']
-        n_pops_per_layer = mc.properties['n_pops_per_layer']
-        V0_mean = mc.properties['V0_mean']
-        n_record_v = mc.properties['params_dict']['nest']['n_record_v']
-        record_v = mc.properties['params_dict']['nest']['record_v']
-        record_fraction = mc.properties['params_dict']['nest']['record_fraction']
-        thalamic_input = mc.properties['thalamic_input']
-        w_rel = mc.properties['w_rel']
-        w_rel_234 = mc.properties['w_rel_234']
-        simulator = mc.properties['simulator']
-        N_full = mc.properties['N_full']
-        K_ext = mc.properties['K_ext']
-        tau_syn_E = mc.properties['neuron_params']['tau_syn_E']
-        v_thresh = mc.properties['neuron_params']['v_thresh']
-        v_rest = mc.properties['neuron_params']['v_rest']
-        neuron_params = mc.properties['neuron_params']
-        thal_params = mc.properties['thal_params']
-        structure = mc.properties['structure']
-        d_mean = mc.properties['d_mean']
-        d_sd = mc.properties['d_sd']
-        frac_record_v = mc.properties['params_dict']['nest']['frac_record_v']
-        n_rec = mc.get_n_rec()
+        pyseed = conf['params_dict']['nest']['pyseed']
+        parallel_safe = conf['params_dict']['nest']['parallel_safe']
+        input_type = conf['params_dict']['nest']['input_type']
+        layers = conf['layers']
+        pops = conf['pops']
+        bg_rate = conf['bg_rate']
+        w_mean = conf['w_mean']
+        K_scaling = conf['params_dict']['nest']['K_scaling']
+        N_scaling = conf['params_dict']['nest']['N_scaling']
+        n_record = conf['params_dict']['nest']['n_record']
+        neuron_model = conf['neuron_model']
+        tau_max = conf['tau_max']
+        record_corr = conf['params_dict']['nest']['record_corr']
+        n_layers = conf['n_layers']
+        n_pops_per_layer = conf['n_pops_per_layer']
+        V0_mean = conf['V0_mean']
+        n_record_v = conf['params_dict']['nest']['n_record_v']
+        record_v = conf['params_dict']['nest']['record_v']
+        record_fraction = conf['params_dict']['nest']['record_fraction']
+        thalamic_input = conf['thalamic_input']
+        w_rel = conf['w_rel']
+        w_rel_234 = conf['w_rel_234']
+        simulator = conf['simulator']
+        N_full = conf['N_full']
+        K_ext = conf['K_ext']
+        tau_syn_E = conf['neuron_params']['tau_syn_E']
+        v_thresh = conf['neuron_params']['v_thresh']
+        v_rest = conf['neuron_params']['v_rest']
+        neuron_params = conf['neuron_params']
+        thal_params = conf['thal_params']
+        structure = conf['structure']
+        d_mean = conf['d_mean']
+        d_sd = conf['d_sd']
+        frac_record_v = conf['params_dict']['nest']['frac_record_v']
+        n_rec = Help_func.get_n_rec(conf)
 
         # if parallel_safe=False, PyNN offsets the seeds by 1 for each rank
         script_rng = NumpyRNG(seed=pyseed,
@@ -78,7 +79,7 @@ class Network:
             for pop in pops:
                 self.K_ext[layer][pop] = K_scaling * K_ext[layer][pop]
 
-        self.w = Help_func.create_weight_matrix(neuron_model, conf)
+        self.w = Help_func.create_weight_matrix(conf)
         # Network scaling
         if K_scaling != 1:
             self.w, self.w_ext, self.DC_amp = Scaling.adjust_w_and_ext_to_K(K_full, K_scaling, self.w, self.DC_amp, conf)
@@ -125,7 +126,7 @@ class Network:
                                                     })
 
         if sim.rank() == 0:
-            print 'neuron_params:', mc.properties['neuron_params']
+            print 'neuron_params:', conf['neuron_params']
             print 'K: ', self.K
             print 'K_ext: ', self.K_ext
             print 'w: ', self.w
@@ -147,7 +148,7 @@ class Network:
         self.pops = {}
         global_neuron_id = 1
         self.base_neuron_ids = {}
-        device_list = []
+        device_list = [] # list containing the GIDs of recording devices, needed for output bundle
         for layer in layers:
             self.pops[layer] = {}
             for pop in pops:

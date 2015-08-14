@@ -7,6 +7,7 @@ import time
 import glob
 import numpy as np
 from task_types import TaskTypes as tt
+from helper_functions import Help_func
 
 # The simulation runs with values defined in config-file microcircuit.yaml
 #
@@ -40,20 +41,20 @@ def microcircuit_task(config_file):
             res: application/vnd.juelich.bundle.nest.data
     '''
 
-    # load config of microcircuit_model .yaml
+    # load config file (.yaml)
     cfile = microcircuit_task.task.uri.get_file(config_file)
     with open(cfile, 'r') as f:
         conf = yaml.load(f)
 
     plot_filename = 'spiking_activity.png'
 
-    # create bundle & export bundle, THIS SHOULD BE MIMETYPE of INM-6
+    # create bundle & export bundle, mime type for nest simulation output
     my_bundle_mimetype = "application/vnd.juelich.bundle.nest.data"
     bundle = microcircuit_task.task.uri.build_bundle(my_bundle_mimetype)
 
     results = _run_microcircuit(plot_filename, conf)
 
-    # print bundle
+    # print and return bundle
     print "results = ", results
 
     for file_name, file_mimetype in results:
@@ -71,29 +72,29 @@ def _run_microcircuit(plot_filename, conf):
     from plotting import Plotting
     import logging
 
-    mc = Init_microcircuit(conf)
+    Init_microcircuit(conf)
 
-    simulator = mc.properties['simulator']
-    # WE HERE ONLY USE NEST AS SIMULATOR
+    simulator = conf['simulator']
+    # we here only need nest as simulator, simulator = 'nest'
     import pyNN.nest as sim
 
     # prepare simulation
     logging.basicConfig()
 
-    # extract parameters from config-parameter
-    master_seed = mc.properties['params_dict']['nest']['master_seed']
-    layers = mc.properties['layers']
-    pops = mc.properties['pops']
-    plot_spiking_activity = mc.properties['plot_spiking_activity']
-    raster_t_min = mc.properties['raster_t_min']
-    raster_t_max = mc.properties['raster_t_max']
-
-    # Numbers of neurons from which to record spikes
-    n_rec = mc.get_n_rec()
-
+    # extract parameters from config file
+    master_seed = conf['params_dict']['nest']['master_seed']
+    layers = conf['layers']
+    pops = conf['pops']
+    plot_spiking_activity = conf['plot_spiking_activity']
+    raster_t_min = conf['raster_t_min']
+    raster_t_max = conf['raster_t_max']
     frac_to_plot = conf['frac_to_plot']
     record_corr = conf['params_dict']['nest']['record_corr']
     tau_max = conf['tau_max']
+
+    # Numbers of neurons from which to record spikes
+    n_rec = Help_func.get_n_rec(conf)
+
     sim.setup(**conf['simulator_params'][simulator])
 
     if simulator == 'nest':
@@ -121,8 +122,8 @@ def _run_microcircuit(plot_filename, conf):
     start_netw = time.time()
     n = network.Network(sim)
 
-    # device_list contains the GIDs of spike detectors and voltmeters
-    # needed for retrieving filenames later
+    # PYTHON2.6: device_list CONTAINS THE GIDs OF THE SPIKE DETECTORS AND VOLTMETERS
+    # NEEDED FOR RETRIEVING FILENAMES LATER
     device_list = n.setup(sim, conf)
     
     end_netw = time.time()
@@ -139,13 +140,16 @@ def _run_microcircuit(plot_filename, conf):
         print 'Simulation took ', end_sim - start_sim, ' s'
 
     # extract filename from device_list (spikedetector/voltmeter)
+    # PYTHON2.6: NEEDS TO BE ADAPTED IF NOT RECORDED VIA PYNEST
     for dev in device_list:
         label = sim.nest.GetStatus(dev)[0]['label']
         filenames = glob.glob(label + '*')
         extension = sim.nest.GetStatus(dev)[0]['file_extension']
-        filetype = 'text/plain'
-        # TODO: add types dependent on extension
-        # as soon as they are registered
+        if extension == 'gdf': # spikes
+            filetype = 'application/vnd.juelich.nest.spike_times'
+        elif extension == 'dat': # voltages
+            filetype = 'application/vnd.juelich.nest.analogue_signal'
+
         for fname in filenames:
             res = (fname, filetype)
             results.append(res)

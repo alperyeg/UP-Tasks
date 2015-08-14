@@ -1,3 +1,64 @@
+#############################
+### parameter config file ###
+#############################
+params_dict:
+  nest: {
+    # Scaling factor for in-degrees. Upon downscaling, synaptic weights are
+    # taken proportional to 1/sqrt(in-degree) and external drive is adjusted
+    # to preserve mean and variances of activity in the diffusion approximation.
+    # In-degrees and weights of both intrinsic and extrinsic inputs are adjusted.
+    # This scaling was not part of the original study, but this option is included
+    # here to enable simulations on small systems that give results similar to
+    # full-scale simulations.
+    K_scaling: 1.0, 
+    # Fraction of neurons to simulate
+    N_scaling: 1.0, 
+    # Whether to record from a fixed fraction of neurons in each population.
+    # If False, a fixed number of neurons is recorded.
+    record_fraction: true, 
+    # Whether to record membrane potentials
+    record_v: false, 
+    # Fraction of neurons from which to record spikes when record_fraction = True
+    frac_record_spikes: 0.1, 
+    # Fraction of neurons from which to record membrane potentials when
+    # record_v=True and record_fraction = True
+    frac_record_v: 0.1,
+    # Number of neurons from which to record spikes when record_fraction = False
+    n_record: 100, 
+    # Fixed number of neurons from which to record membrane potentials when
+    # record_v = True and record_fraction = False
+    n_record_v: 20, 
+    # Type of background input. Possible values: 'poisson' and 'DC'
+    # If 'DC' is chosen, a constant external current is provided, equal to the mean
+    # current due to the Poisson input used in the default version of the model.
+    input_type: poisson, 
+    # random number generator seed for NEST Poisson generators
+    master_seed: 124678, 
+    # Whether to make random numbers independent of the number of processes
+    parallel_safe: false,
+    # random number generator seeds for V and connectivity.
+    # When parallel_safe is True, only the first is used.
+    # When parallel_safe is False, the first num_processes are used.
+    pyseed: 2563297, 
+    # Whether to record correlations
+    record_corr: false, 
+    # Whether to save connections to file.
+    # Even if save_connections is set to True, at the moment connections are not
+    # saved because the output exceeds the user's default capacity on the UP.
+    save_connections: false}
+# Simulator back-end, currently it has to be nest
+simulator: nest
+simulator_params:
+  nest: {max_delay: 100.0, min_delay: 0.1, sim_duration: 1000.0, threads: 1, timestep: 0.1}
+# Parameters for plots of spiking activity
+plot_spiking_activity: true
+# Fraction of recorded neurons to include in raster plot
+frac_to_plot: 0.5
+# Excitatory and inhibitory population
+pops: {E: 0, I: 1}
+# raster_t_min and raster_t_max include the time scaling factor
+raster_t_max: 1000.0
+raster_t_min: 0.0
 # In-degrees for external inputs
 K_ext:
   L23: {E: 1600, I: 1500}
@@ -30,8 +91,6 @@ conn_probs:
 # Means and standard deviations of delays from given source populations (ms)
 d_mean: {E: 1.5, I: 0.75}
 d_sd: {E: 0.75, I: 0.375}
-# Fraction of recorded neurons to include in raster plot
-frac_to_plot: 0.5
 # Mean rates in the full-scale model, necessary for scaling
 # Precise values differ somewhat between network realizations
 full_mean_rates:
@@ -57,62 +116,6 @@ neuron_params: {
     v_rest: -65.0, # mV
     v_thresh: -50.0 # mV
 }
-params_dict:
-  nest: {
-    # Scaling factor for in-degrees. Upon downscaling, synaptic weights are
-    # taken proportional to 1/sqrt(in-degree) and external drive is adjusted
-    # to preserve mean and variances of activity in the diffusion approximation.
-    # In-degrees and weights of both intrinsic and extrinsic inputs are adjusted.
-    # This scaling was not part of the original study, but this option is included
-    # here to enable simulations on small systems that give results similar to
-    # full-scale simulations.
-    K_scaling: 0.1, 
-    # Fraction of neurons to simulate
-    N_scaling: 0.1, 
-    # Fraction of neurons from which to record spikes when record_fraction = True
-    frac_record_spikes: 1.0, 
-    # Fraction of neurons from which to record membrane potentials when
-    # record_v=True and record_fraction = True
-    frac_record_v: 0.1,
-    # Type of background input. Possible values: 'poisson' and 'DC'
-    # If 'DC' is chosen, a constant external current is provided, equal to the mean
-    # current due to the Poisson input used in the default version of the model.
-    input_type: poisson, 
-    # random number generator seed for NEST Poisson generators
-    master_seed: 124678, 
-    # Number of neurons from which to record spikes when record_fraction = False
-    n_record: 100, 
-    # Fixed number of neurons from which to record membrane potentials when
-    # record_v=True and record_fraction = False
-    n_record_v: 20,   
-    # Whether to make random numbers independent of the number of processes
-    parallel_safe: false,
-    # random number generator seeds for V and connectivity.
-    # When parallel_safe is True, only the first is used.
-    # When parallel_safe is False, the first num_processes are used.
-    pyseed: 2563297, 
-    # Whether to record correlations
-    record_corr: false, 
-    # Whether to record from a fixed fraction of neurons in each population.
-    # If False, a fixed number of neurons is recorded.
-    record_fraction: true, 
-    # Whether to record membrane potentials
-    record_v: false, 
-    # Whether to save connections to file. See README.txt for known issues with using
-    # save_connections in parallel simulations. 
-    # Even if save_connections is set to True, connections are not saved because
-    # the output exceeds the user's default capacity on the UP.
-    save_connections: false}
-# Parameters for plots of spiking activity
-plot_spiking_activity: true
-pops: {E: 0, I: 1}
-# raster_t_min and raster_t_max include the time scaling factor
-raster_t_max: 1000.0
-raster_t_min: 0.0
-# Simulator back-end
-simulator: nest
-simulator_params:
-  nest: {max_delay: 100.0, min_delay: 0.1, sim_duration: 1000.0, threads: 1, timestep: 0.1}
 structure:
   L23: {E: 0, I: 1}
   L4: {E: 2, I: 3}

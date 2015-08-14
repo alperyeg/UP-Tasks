@@ -5,7 +5,7 @@ class Connectivity:
                                 conf):
         """
             Function connecting two populations with multapses and a fixed
-            total number of synapses Using new NEST implementation of Connect
+            total number of synapses using new NEST implementation of Connect
         """
 
         simulator = conf['simulator']
@@ -38,7 +38,7 @@ class Connectivity:
         if save_connections:
             print "save_connections was set to True, but connections are \
                 currently not saved because the output exceeds the user's \
-                default capacity of the UP."
+                default capacity on the UP."
             pass
 
             # - weights are in pA
