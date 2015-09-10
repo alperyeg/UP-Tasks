@@ -159,21 +159,36 @@ def _run_microcircuit(plot_filename, conf):
     if sim.rank() == 0:
         print 'Simulation took ', end_sim - start_sim, ' s'
 
-    # extract filename from device_list (spikedetector/voltmeter)
+    # extract filename from device_list (spikedetector/voltmeter),
+    # gid of neuron and thread. merge outputs from all threads
+    # into a single file which is then added to the task output.
     # PYTHON2.6: NEEDS TO BE ADAPTED IF NOT RECORDED VIA PYNEST
     for dev in device_list:
         label = sim.nest.GetStatus(dev)[0]['label']
-        filenames = glob.glob(label + '*')
+        gid = sim.nest.GetStatus(dev)[0]['global_id']
         extension = sim.nest.GetStatus(dev)[0]['file_extension']
-        if extension == 'gdf': # spikes
+        data = np.empty((0, 2))
+        for thread in xrange(conf['simulator_params']['nest']['threads']):
+            filenames = glob.glob('%s-*%d-%d.%s' % (label, gid, thread, extension))
+            assert(len(filenames) == 1), 'Multiple input files found. Use a clean output directory.'
+            data = np.vstack([data, np.loadtxt(filenames[0])])
+        order = np.argsort(data[:, 1])
+        data = data[order]
+        outputfile_name = 'collected_%s-%d.%s' % (label, gid, extension)
+        outputfile = open(outputfile_name, 'w')
+        # the outputfile should have same format as output from NEST.
+        # i.e., [int, float], hence we write it line by line.
+        for line in data:
+            outputfile.write('%2d    %f\n' % (line[0], line[1]))
+        outputfile.close()
+
+        if extension == 'gdf':  # spikes
             filetype = 'application/vnd.juelich.nest.spike_times'
-        elif extension == 'dat': # voltages
+        elif extension == 'dat':  # voltages
             filetype = 'application/vnd.juelich.nest.analogue_signal'
 
-        for fname in filenames:
-            res = (fname, filetype)
-            results.append(res)
-
+        res = (outputfile_name, filetype)
+        results.append(res)
 
     # start_writing = time.time()
 
