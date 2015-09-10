@@ -26,32 +26,27 @@ class Plotting:
         for layer in layers:
             spikes[layer] = {}
             for pop in pops:
-                # filestart = path + '/spikes_' + layer + pop + '*'
-                filestart = path + 'spikes_' + layer + pop + '*'
-                filelist = glob.glob(filestart)
-                pop_spike_array = np.empty((0, 2))
-                for file_name in filelist:
-                    try:
-                        spike_array = np.loadtxt(file_name)
-                        # PYTHON2.6: SWAPPED SPIKE TIMES AND ID COLUMNS SINCE
-                        # THEY ARE IN DIFFERENT ORDER IN PLAIN NEST .gdf OUTPUT
-                        # AND PYNN OUTPUT
-                        spike_array[:, [0, 1]] = spike_array[:, [1, 0]]
-                        # PYTHON2.6: IN PYNN, NEURON IDS START WITH 0 IN EACH
-                        # POPULATION AND IN PLAIN NEST, THEY SUM UP. SUBTRACT
-                        # THE FIRST ID OF EACH POPULATION FROM THE NEST
-                        # IDS FOR BEING COMPATIBLE WITH THE FOLLOWING PYNN CODE
-                        first_id = network_pops[layer][pop].first_id
-                        spike_array[:, 1] = [gdf_id - first_id
-                                             for gdf_id in
-                                             spike_array[:, 1]]
+                filenames = glob.glob(path + 'collected_spikes_' + layer + pop + '*.gdf')
+                assert(len(filenames) == 1), 'Multiple input files found. Use a clean output directory.'
+                try:
+                    spike_array = np.loadtxt(filenames[0])
+                    # PYTHON2.6: SWAPPED SPIKE TIMES AND ID COLUMNS SINCE
+                    # THEY ARE IN DIFFERENT ORDER IN PLAIN NEST .gdf OUTPUT
+                    # AND PYNN OUTPUT
+                    spike_array[:, [0, 1]] = spike_array[:, [1, 0]]
+                    # PYTHON2.6: IN PYNN, NEURON IDS START WITH 0 IN EACH
+                    # POPULATION AND IN PLAIN NEST, THEY SUM UP. SUBTRACT
+                    # THE FIRST ID OF EACH POPULATION FROM THE NEST
+                    # IDS FOR BEING COMPATIBLE WITH THE FOLLOWING PYNN CODE
+                    first_id = network_pops[layer][pop].first_id
+                    spike_array[:, 1] = [gdf_id - first_id
+                                         for gdf_id in
+                                         spike_array[:, 1]]
 
-                        pop_spike_array = np.vstack((pop_spike_array,
-                                                     spike_array))
-                    except IOError:
-                        print 'reading spike data from ', file_name, ' failed'
-                        pass
-                spikes[layer][pop] = pop_spike_array
+                except IOError:
+                    print 'reading spike data from ', filename[0], ' failed'
+                    pass
+                spikes[layer][pop] = spike_array
 
         # Plot spike times in raster plot and bar plot with the average firing
         # rates of each population
