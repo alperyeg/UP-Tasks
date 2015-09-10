@@ -1,6 +1,7 @@
 #! /usr/bin/env python
 __author__ = "Long Phan. INM-6, FZJ"
 
+import numpy as np
 import elephant as el
 import matplotlib
 matplotlib.use('Agg')
@@ -49,11 +50,12 @@ def cv_histogram_task(input_data):
         cv = el.statistics.cv(cv_data)
         print "CV = ", cv
 
-        # limiting floats to three decimal points
-        sub_res = round(cv, 3)
+        if not np.isnan(cv):
+            # limiting floats to three decimal points
+            sub_res = round(cv, 3)
 
-        # save result
-        res.append(sub_res)
+            # save result
+            res.append(sub_res)
 
     # Close remaining file h5
     ion.close()
