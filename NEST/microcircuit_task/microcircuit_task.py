@@ -139,7 +139,9 @@ def _run_microcircuit(plot_filename, conf):
     if sim.rank() == 0:
         print 'Simulation took ', end_sim - start_sim, ' s'
 
-    # extract filename from device_list (spikedetector/voltmeter)
+    # extract filename from device_list (spikedetector/voltmeter),
+    # gid of neuron and thread. merge outputs from all threads
+    # into a single file which is then added to the task output.
     # PYTHON2.6: NEEDS TO BE ADAPTED IF NOT RECORDED VIA PYNEST
     for dev in device_list:
         label = sim.nest.GetStatus(dev)[0]['label']
@@ -154,18 +156,19 @@ def _run_microcircuit(plot_filename, conf):
         data = data[order]
         outputfile_name = 'collected_%s-%d.%s' % (label, gid, extension)
         outputfile = open(outputfile_name, 'w')
+        # the outputfile should have same format as output from NEST.
+        # i.e., [int, float], hence we write it line by line.
         for line in data:
             outputfile.write('%2d    %f\n' % (line[0], line[1]))
         outputfile.close()
 
-        if extension == 'gdf': # spikes
+        if extension == 'gdf':  # spikes
             filetype = 'application/vnd.juelich.nest.spike_times'
-        elif extension == 'dat': # voltages
+        elif extension == 'dat':  # voltages
             filetype = 'application/vnd.juelich.nest.analogue_signal'
 
         res = (outputfile_name, filetype)
         results.append(res)
-
 
     # start_writing = time.time()
 
