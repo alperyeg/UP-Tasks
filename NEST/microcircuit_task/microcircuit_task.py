@@ -47,7 +47,7 @@ def microcircuit_task(configuration_file, simulation_duration, threads):
                 description: Simulation duration in ms [default=1000]. Overrides value in configuration file.
             threads:
                 type: long
-                description: Number of threads NEST should use for the simulation [default=1]. Needs to be set to the same value as 'CPU cores' below.
+                description: Number of threads NEST should use for the simulation [default=1]. Needs to be set to the same value as 'CPU cores'.
         Returns:
             res: application/vnd.juelich.bundle.nest.data
     '''

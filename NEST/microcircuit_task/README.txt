@@ -10,6 +10,7 @@ Contributors:
     Johanna Senk (j.senk@fz-juelich.de)
     Sacha van Albada
     Long Phan
+    Jakob Jordan
 
 Instructions:
     Running this task locally:
