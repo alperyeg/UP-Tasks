@@ -18,7 +18,7 @@ from helper_functions import Help_func
 
 
 @task
-def microcircuit_task(config_file, sim_time):
+def microcircuit_task(configuration_file, simulation_duration, threads):
     '''
         Task Manifest Version: 1
         Full Name: microcircuit_task
@@ -32,23 +32,28 @@ def microcircuit_task(config_file, sim_time):
             to be passed as a configuration file. A template can be downloaded from
             https://github.com/INM-6/UP-Tasks/blob/master/NEST/microcircuit_task/microcircuit.yaml.
             It is possible to provide an empty or partial configuration file. For the missing
-            parameters, default values will be used.
+            parameters, default values will be used. After uploading the YAML file to the UP,
+            its content type needs to be changed to 'application/vnd.juelich.simulation.config'.
+            For running the full model, 4 CPU cores and 15360MB memory should be requested.
         Categories:
             - NEST
         Compatible_queues: ['cscs_viz', 'cscs_bgq', 'epfl_viz']
         Accepts:
-            Configuration file:
+            configuration_file:
                 type: application/vnd.juelich.simulation.config
                 description: YAML file, specifying parameters of the simulation. Point to an empty file to use default parameters.
-            Simulation duration:
+            simulation_duration:
                 type: double
                 description: Simulation duration in ms [default=1000]. Overrides value in configuration file.
+            threads:
+                type: long
+                description: Number of threads NEST should use for the simulation [default=1]. Needs to be set to the same value as 'CPU cores' below.
         Returns:
             res: application/vnd.juelich.bundle.nest.data
     '''
 
     # load config file provided by user
-    user_cfile = microcircuit_task.task.uri.get_file(config_file)
+    user_cfile = microcircuit_task.task.uri.get_file(configuration_file)
     with open(user_cfile, 'r') as f:
         user_conf = yaml.load(f)
 
@@ -64,7 +69,8 @@ def microcircuit_task(config_file, sim_time):
 
     # update dict with parameters given in webinterface; these take
     # precedence over those in the configuration file
-    conf['simulator_params']['nest']['sim_duration'] = sim_time
+    conf['simulator_params']['nest']['sim_duration'] = simulation_duration
+    conf['simulator_params']['nest']['threads'] = threads
 
     plot_filename = 'spiking_activity.png'
 
@@ -272,7 +278,8 @@ def _run_microcircuit(plot_filename, conf):
     return results
 
 if __name__ == '__main__':
-    config_file = 'microcircuit.yaml'
-    sim_time = 1000.
-    filename = tt.URI('application/vnd.juelich.simulation.config', config_file)
-    microcircuit_task(filename, sim_time)
+    configuration_file = 'microcircuit.yaml'
+    simulation_duration = 1000.
+    threads = 1
+    filename = tt.URI('application/vnd.juelich.simulation.config', configuration_file)
+    microcircuit_task(filename, simulation_duration, threads)

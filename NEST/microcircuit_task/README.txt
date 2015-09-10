@@ -23,4 +23,5 @@ Instructions:
 Tested versions:
     NEST: 2.6.0
     Python: 2.6.6
+    NumPy: 1.8.0
     PyNN: 0.7.5
