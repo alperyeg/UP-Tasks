@@ -73,8 +73,7 @@ def cv_histogram_task(input_data):
     if len(res) > 0:
         plt.hist(res, bins=100, normed=1, histtype='bar', rwidth=1)
     else:
-        print 'Warning: no data to display.'
-    # plt.show()
+        print 'Warning: could not calculate CV for input(s).'
 
     output_file = 'result_cv_histogram_task.png'
     with open(output_file, 'w') as output:
