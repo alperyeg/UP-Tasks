@@ -45,17 +45,18 @@ def cv_histogram_task(input_data):
     for k in range(number_of_SpikeTrains):
         poisson_data = ion.get("/"+"SpikeTrain_"+str(k))
 
-        # Calculate value for cv
-        cv_data = el.statistics.isi(poisson_data)
-        cv = el.statistics.cv(cv_data)
-        print "CV = ", cv
+        if poisson_data.size > 0:
+            # Calculate value for cv
+            cv_data = el.statistics.isi(poisson_data)
+            cv = el.statistics.cv(cv_data)
+            print "CV = ", cv
 
-        if not np.isnan(cv):
-            # limiting floats to three decimal points
-            sub_res = round(cv, 3)
+            if not np.isnan(cv):
+                # limiting floats to three decimal points
+                sub_res = round(cv, 3)
 
-            # save result
-            res.append(sub_res)
+                # save result
+                res.append(sub_res)
 
     # Close remaining file h5
     ion.close()
@@ -69,8 +70,10 @@ def cv_histogram_task(input_data):
 
     # Plotting an histogram
     plt.grid(True)
-    plt.hist(res, bins=100, normed=1, histtype='bar', rwidth=1)
-    # plt.show()
+    if len(res) > 0:
+        plt.hist(res, bins=100, normed=1, histtype='bar', rwidth=1)
+    else:
+        print 'Warning: could not calculate CV for input(s).'
 
     output_file = 'result_cv_histogram_task.png'
     with open(output_file, 'w') as output:
