@@ -59,7 +59,7 @@ def microcircuit_task(configuration_file, simulation_duration, threads):
 
     # load default config file
     default_cfile = 'microcircuit.yaml'
-    with open(default_cfile, 'r') as f:
+    with open('./' +  default_cfile, 'r') as f: # datapath necessary
         default_conf = yaml.load(f)
 
     # create config by merging user and default dicts
