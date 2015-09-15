@@ -18,7 +18,7 @@ def nest2elephant_task(input_filename, t_start, t_stop, gdf_id_list):
             - FDAT
         Compatible_queues: ['cscs_viz', 'cscs_bgq', 'epfl_viz']
         Accepts:
-            input_file:
+            input_filename:
                 type: application/vnd.juelich.nest.spike_times
                 description: Input file that contains spiking data from a
                     NEST simulation in gdf format.
