@@ -4,6 +4,7 @@ import yaml
 import matplotlib
 matplotlib.use('Agg')
 import time
+import os
 import glob
 import numpy as np
 from task_types import TaskTypes as tt
@@ -172,25 +173,36 @@ def _run_microcircuit(plot_filename, conf):
     for dev in device_list:
         label = sim.nest.GetStatus(dev)[0]['label']
         gid = sim.nest.GetStatus(dev)[0]['global_id']
+        # use the file extension to distinguish between spike and voltage output
         extension = sim.nest.GetStatus(dev)[0]['file_extension']
-        data = np.empty((0, 2))
+        if extension == 'gdf': # spikes
+            data = np.empty((0, 2))
+        elif extension == 'dat': # voltages
+            data = np.empty((0, 3))
         for thread in xrange(conf['simulator_params']['nest']['threads']):
-            filenames = glob.glob('%s-*%d-%d.%s' % (label, gid, thread, extension))
+            filenames = glob.glob('./' + '%s-*%d-%d.%s' % (label, gid, thread, extension))
             assert(len(filenames) == 1), 'Multiple input files found. Use a clean output directory.'
             data = np.vstack([data, np.loadtxt(filenames[0])])
+            # delete original files
+            for f in filenames:
+                os.remove(f)
         order = np.argsort(data[:, 1])
         data = data[order]
         outputfile_name = 'collected_%s-%d.%s' % (label, gid, extension)
-        outputfile = open(outputfile_name, 'w')
+        outputfile = open('./' + outputfile_name, 'w')
         # the outputfile should have same format as output from NEST.
-        # i.e., [int, float], hence we write it line by line.
-        for line in data:
-            outputfile.write('%2d    %f\n' % (line[0], line[1]))
-        outputfile.close()
-
+        # i.e., [int, float] for spikes and [int, float, float] for voltages,
+        # hence we write it line by line and assign the corresponding filetype
         if extension == 'gdf':  # spikes
+            for line in data:
+                outputfile.write('%d\t%.3f\n' % (line[0], line[1]))
+            outputfile.close()
             filetype = 'application/vnd.juelich.nest.spike_times'
+
         elif extension == 'dat':  # voltages
+            for line in data:
+                outputfile.write('%d\t%.3f\t%.3f\n' % (line[0], line[1], line[2]))
+            outputfile.close()
             filetype = 'application/vnd.juelich.nest.analogue_signal'
 
         res = (outputfile_name, filetype)
@@ -278,8 +290,8 @@ def _run_microcircuit(plot_filename, conf):
     return results
 
 if __name__ == '__main__':
-    configuration_file = 'microcircuit.yaml'
+    configuration_file = 'microcircuit.yaml' #user_config.yaml'
     simulation_duration = 1000.
-    threads = 1
+    threads = 4
     filename = tt.URI('application/vnd.juelich.simulation.config', configuration_file)
     microcircuit_task(filename, simulation_duration, threads)
