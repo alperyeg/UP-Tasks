@@ -19,7 +19,7 @@ from helper_functions import Help_func
 
 
 @task
-def microcircuit_task(configuration_file, simulation_duration, threads):
+def microcircuit_task(configuration_file, simulation_duration, thalamic_input, threads):
     '''
         Task Manifest Version: 1
         Full Name: microcircuit_task
@@ -28,14 +28,14 @@ def microcircuit_task(configuration_file, simulation_duration, threads):
         Description: |
             Multi-layer microcircuit model of early sensory cortex
             (Potjans, T. C., & Diesmann, M. (2014) Cerebral Cortex 24(3):785-806).
-            PyNN version modified to run as task on the Unified Portal.
+            PyNN version modified to run as task in the Collaboratory.
             Simulation paramters are defined in microcircuit.yaml, which needs
             to be passed as a configuration file. A template can be downloaded from
             https://github.com/INM-6/UP-Tasks/blob/master/NEST/microcircuit_task/microcircuit.yaml.
             It is possible to provide an empty or partial configuration file. For the missing
-            parameters, default values will be used. After uploading the YAML file to the UP,
+            parameters, default values will be used. After uploading the YAML file,
             its content type needs to be changed to 'application/vnd.juelich.simulation.config'.
-            For running the full model, 4 CPU cores and 15360MB memory should be requested.
+            For running the full model, 4 CPU cores and 15360 MB memory should be requested.
         Categories:
             - NEST
         Compatible_queues: ['cscs_viz', 'cscs_bgq', 'epfl_viz']
@@ -46,6 +46,9 @@ def microcircuit_task(configuration_file, simulation_duration, threads):
             simulation_duration:
                 type: double
                 description: Simulation duration in ms [default=1000]. Overrides value in configuration file.
+            thalamic_input:
+                type: long
+                description: If 1 (=True), a transient thalamic input is applied to the network [default=0].
             threads:
                 type: long
                 description: Number of threads NEST should use for the simulation [default=1]. Needs to be set to the same value as 'CPU cores'.
@@ -72,6 +75,14 @@ def microcircuit_task(configuration_file, simulation_duration, threads):
     # precedence over those in the configuration file
     conf['simulator_params']['nest']['sim_duration'] = simulation_duration
     conf['simulator_params']['nest']['threads'] = threads
+
+    # thalamic input: convert long to boolean
+    # (apparently, boolean is not part of the task type system)
+    if thalamic_input == 1:
+        conf['thalamic_input'] = True
+    else:
+        conf['thalamic_input'] = False
+
 
     plot_filename = 'spiking_activity.png'
 
@@ -290,8 +301,9 @@ def _run_microcircuit(plot_filename, conf):
     return results
 
 if __name__ == '__main__':
-    configuration_file = 'microcircuit.yaml' #user_config.yaml'
+    configuration_file = 'user_config.yaml'
     simulation_duration = 1000.
+    thalamic_input = 1
     threads = 4
     filename = tt.URI('application/vnd.juelich.simulation.config', configuration_file)
-    microcircuit_task(filename, simulation_duration, threads)
+    microcircuit_task(filename, simulation_duration, thalamic_input, threads)
