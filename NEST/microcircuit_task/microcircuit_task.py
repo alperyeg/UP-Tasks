@@ -163,7 +163,7 @@ def _run_microcircuit(plot_filename, conf):
     # PYTHON2.6: device_list CONTAINS THE GIDs OF THE SPIKE DETECTORS AND VOLTMETERS
     # NEEDED FOR RETRIEVING FILENAMES LATER
     device_list = n.setup(sim, conf)
-    
+
     end_netw = time.time()
     if sim.rank() == 0:
         print 'Creating the network took ', end_netw - start_netw, ' s'
@@ -191,7 +191,8 @@ def _run_microcircuit(plot_filename, conf):
         elif extension == 'dat': # voltages
             data = np.empty((0, 3))
         for thread in xrange(conf['simulator_params']['nest']['threads']):
-            filenames = glob.glob('./' + '%s-*%d-%d.%s' % (label, gid, thread, extension))
+            filenames = glob.glob(conf['system_params']['output_path'] \
+                                  + '%s-*%d-%d.%s' % (label, gid, thread, extension))
             assert(len(filenames) == 1), 'Multiple input files found. Use a clean output directory.'
             data = np.vstack([data, np.loadtxt(filenames[0])])
             # delete original files
@@ -200,7 +201,7 @@ def _run_microcircuit(plot_filename, conf):
         order = np.argsort(data[:, 1])
         data = data[order]
         outputfile_name = 'collected_%s-%d.%s' % (label, gid, extension)
-        outputfile = open('./' + outputfile_name, 'w')
+        outputfile = open(conf['system_params']['output_path'] + outputfile_name, 'w')
         # the outputfile should have same format as output from NEST.
         # i.e., [int, float] for spikes and [int, float, float] for voltages,
         # hence we write it line by line and assign the corresponding filetype
