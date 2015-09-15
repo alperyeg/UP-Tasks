@@ -47,8 +47,8 @@ def microcircuit_task(configuration_file, simulation_duration, thalamic_input, t
                 type: double
                 description: Simulation duration in ms [default=1000]. Overrides value in configuration file.
             thalamic_input:
-                type: long
-                description: If 1 (=True), a transient thalamic input is applied to the network [default=0].
+                type: bool
+                description: If True, a transient thalamic input is applied to the network [default=False].
             threads:
                 type: long
                 description: Number of threads NEST should use for the simulation [default=1]. Needs to be set to the same value as 'CPU cores'.
@@ -75,13 +75,7 @@ def microcircuit_task(configuration_file, simulation_duration, thalamic_input, t
     # precedence over those in the configuration file
     conf['simulator_params']['nest']['sim_duration'] = simulation_duration
     conf['simulator_params']['nest']['threads'] = threads
-
-    # thalamic input: convert long to boolean
-    # (apparently, boolean is not part of the task type system)
-    if thalamic_input == 1:
-        conf['thalamic_input'] = True
-    else:
-        conf['thalamic_input'] = False
+    conf['thalamic_input'] = thalamic_input
 
 
     plot_filename = 'spiking_activity.png'
@@ -201,7 +195,7 @@ def _run_microcircuit(plot_filename, conf):
         order = np.argsort(data[:, 1])
         data = data[order]
         outputfile_name = 'collected_%s-%d.%s' % (label, gid, extension)
-        outputfile = open(conf['system_params']['output_path'] + outputfile_name, 'w')
+        outputfile = open(outputfile_name, 'w')
         # the outputfile should have same format as output from NEST.
         # i.e., [int, float] for spikes and [int, float, float] for voltages,
         # hence we write it line by line and assign the corresponding filetype
@@ -304,7 +298,7 @@ def _run_microcircuit(plot_filename, conf):
 if __name__ == '__main__':
     configuration_file = 'user_config.yaml'
     simulation_duration = 1000.
-    thalamic_input = 1
+    thalamic_input = True
     threads = 4
     filename = tt.URI('application/vnd.juelich.simulation.config', configuration_file)
     microcircuit_task(filename, simulation_duration, thalamic_input, threads)
