@@ -24,7 +24,7 @@ def microcircuit_task(configuration_file, simulation_duration, thalamic_input, t
         Task Manifest Version: 1
         Full Name: microcircuit_task
         Caption: Cortical microcircuit simulation
-        Author: Johanna Senk, Sacha van Albada and Contributors
+        Author: Johanna Senk, Jakob Jordan, Sacha van Albada
         Description: |
             Multi-layer microcircuit model of early sensory cortex
             (Potjans, T. C., & Diesmann, M. (2014) Cerebral Cortex 24(3):785-806).
@@ -296,7 +296,7 @@ def _run_microcircuit(plot_filename, conf):
     return results
 
 if __name__ == '__main__':
-    configuration_file = 'user_config.yaml'
+    configuration_file = 'microcircuit.yaml' #user_config.yaml'
     simulation_duration = 1000.
     thalamic_input = True
     threads = 4
