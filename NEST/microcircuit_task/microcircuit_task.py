@@ -190,8 +190,7 @@ def _run_microcircuit(plot_filename, conf):
             assert(len(filenames) == 1), 'Multiple input files found. Use a clean output directory.'
             data = np.vstack([data, np.loadtxt(filenames[0])])
             # delete original files
-            for f in filenames:
-                os.remove(f)
+            os.remove(filenames[0])
         order = np.argsort(data[:, 1])
         data = data[order]
         outputfile_name = 'collected_%s-%d.%s' % (label, gid, extension)
