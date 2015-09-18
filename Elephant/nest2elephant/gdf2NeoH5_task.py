@@ -7,10 +7,10 @@ from task_types import TaskTypes as tt
 
 
 @task
-def nest2elephant_task(gdf_file, t_start, t_stop, gdf_id_list):
+def gdf2NeoH5_task(gdf_file, t_start, t_stop, gdf_id_list):
     """
         Task Manifest Version: 1
-        Full Name: nest2elephant_task
+        Full Name: gdf2NeoH5_task
         Caption: nest2elephant
         Author: NEST and Elephant developers
         Description: |
@@ -39,7 +39,7 @@ def nest2elephant_task(gdf_file, t_start, t_stop, gdf_id_list):
             res: application/unknown
     """
 
-    gdf = nest2elephant_task.task.uri.get_file(gdf_file)
+    gdf = gdf2NeoH5_task.task.uri.get_file(gdf_file)
     input_file = gdfio.GdfIO(gdf)
     seg = input_file.read_segment(gdf_id_list=gdf_id_list,
                                   t_start=t_start * pq.ms,
@@ -49,7 +49,7 @@ def nest2elephant_task(gdf_file, t_start, t_stop, gdf_id_list):
     output_file.write(seg.spiketrains)
     output_file.close()
 
-    return nest2elephant_task.task.uri.save_file(
+    return gdf2NeoH5_task.task.uri.save_file(
         mime_type='application/unknown',
         src_path=output_filename,
         dst_path=output_filename)
@@ -61,4 +61,4 @@ if __name__ == '__main__':
     t_start = 0.
     t_stop = 300.
     gdf_id_list = []
-    nest2elephant_task(input_filename, t_start, t_stop, gdf_id_list)
+    gdf2NeoH5_task(input_filename, t_start, t_stop, gdf_id_list)
