@@ -8,7 +8,7 @@ import os
 import glob
 import numpy as np
 from task_types import TaskTypes as tt
-from helper_functions import Help_func
+import helper_functions
 
 # The simulation runs with values defined in config-file microcircuit.yaml
 #
@@ -24,7 +24,7 @@ def microcircuit_task(configuration_file, simulation_duration, thalamic_input, t
         Task Manifest Version: 1
         Full Name: microcircuit_task
         Caption: Cortical microcircuit simulation
-        Author: Johanna Senk, Jakob Jordan, Sacha van Albada
+        Author: NEST Developers
         Description: |
             Multi-layer microcircuit model of early sensory cortex
             (Potjans, T. C., & Diesmann, M. (2014) Cerebral Cortex 24(3):785-806).
@@ -63,7 +63,7 @@ def microcircuit_task(configuration_file, simulation_duration, thalamic_input, t
 
     # load default config file
     default_cfile = 'microcircuit.yaml'
-    with open('./' +  default_cfile, 'r') as f: # datapath necessary
+    with open('./' + default_cfile, 'r') as f:  # datapath necessary
         default_conf = yaml.load(f)
 
     # create config by merging user and default dicts
@@ -76,7 +76,6 @@ def microcircuit_task(configuration_file, simulation_duration, thalamic_input, t
     conf['simulator_params']['nest']['sim_duration'] = simulation_duration
     conf['simulator_params']['nest']['threads'] = threads
     conf['thalamic_input'] = thalamic_input
-
 
     plot_filename = 'spiking_activity.png'
 
@@ -100,11 +99,8 @@ def microcircuit_task(configuration_file, simulation_duration, thalamic_input, t
 
 
 def _run_microcircuit(plot_filename, conf):
-    from Init_microcircuit import Init_microcircuit
-    from plotting import Plotting
+    import plotting
     import logging
-
-    Init_microcircuit(conf)
 
     simulator = conf['simulator']
     # we here only need nest as simulator, simulator = 'nest'
@@ -125,7 +121,7 @@ def _run_microcircuit(plot_filename, conf):
     tau_max = conf['tau_max']
 
     # Numbers of neurons from which to record spikes
-    n_rec = Help_func.get_n_rec(conf)
+    n_rec = helper_functions.get_n_rec(conf)
 
     sim.setup(**conf['simulator_params'][simulator])
 
@@ -180,12 +176,12 @@ def _run_microcircuit(plot_filename, conf):
         gid = sim.nest.GetStatus(dev)[0]['global_id']
         # use the file extension to distinguish between spike and voltage output
         extension = sim.nest.GetStatus(dev)[0]['file_extension']
-        if extension == 'gdf': # spikes
+        if extension == 'gdf':  # spikes
             data = np.empty((0, 2))
-        elif extension == 'dat': # voltages
+        elif extension == 'dat':  # voltages
             data = np.empty((0, 3))
         for thread in xrange(conf['simulator_params']['nest']['threads']):
-            filenames = glob.glob(conf['system_params']['output_path'] \
+            filenames = glob.glob(conf['system_params']['output_path']
                                   + '%s-*%d-%d.%s' % (label, gid, thread, extension))
             assert(len(filenames) == 1), 'Multiple input files found. Use a clean output directory.'
             data = np.vstack([data, np.loadtxt(filenames[0])])
@@ -283,7 +279,7 @@ def _run_microcircuit(plot_filename, conf):
     # print "Writing data took ", end_writing - start_writing, " s"
 
     if plot_spiking_activity and sim.rank() == 0:
-        Plotting.plot_raster_bars(raster_t_min, raster_t_max, n_rec,
+        plotting.plot_raster_bars(raster_t_min, raster_t_max, n_rec,
                                   frac_to_plot, n.pops,
                                   conf['system_params']['output_path'],
                                   plot_filename, conf)
@@ -295,9 +291,10 @@ def _run_microcircuit(plot_filename, conf):
     return results
 
 if __name__ == '__main__':
-    configuration_file = 'microcircuit.yaml' #user_config.yaml'
+    configuration_file = 'microcircuit.yaml'  # user_config.yaml
     simulation_duration = 1000.
     thalamic_input = True
     threads = 4
     filename = tt.URI('application/vnd.juelich.simulation.config', configuration_file)
-    microcircuit_task(filename, simulation_duration, thalamic_input, threads)
+    result = microcircuit_task(filename, simulation_duration, thalamic_input, threads)
+    print result
