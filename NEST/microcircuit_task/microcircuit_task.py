@@ -8,7 +8,7 @@ import os
 import glob
 import numpy as np
 from task_types import TaskTypes as tt
-from helper_functions import Help_func
+import helper_functions
 
 # The simulation runs with values defined in config-file microcircuit.yaml
 #
@@ -100,11 +100,8 @@ def microcircuit_task(configuration_file, simulation_duration, thalamic_input, t
 
 
 def _run_microcircuit(plot_filename, conf):
-    from Init_microcircuit import Init_microcircuit
-    from plotting import Plotting
+    import plotting
     import logging
-
-    Init_microcircuit(conf)
 
     simulator = conf['simulator']
     # we here only need nest as simulator, simulator = 'nest'
@@ -125,7 +122,7 @@ def _run_microcircuit(plot_filename, conf):
     tau_max = conf['tau_max']
 
     # Numbers of neurons from which to record spikes
-    n_rec = Help_func.get_n_rec(conf)
+    n_rec = helper_functions.get_n_rec(conf)
 
     sim.setup(**conf['simulator_params'][simulator])
 
@@ -283,7 +280,7 @@ def _run_microcircuit(plot_filename, conf):
     # print "Writing data took ", end_writing - start_writing, " s"
 
     if plot_spiking_activity and sim.rank() == 0:
-        Plotting.plot_raster_bars(raster_t_min, raster_t_max, n_rec,
+        plotting.plot_raster_bars(raster_t_min, raster_t_max, n_rec,
                                   frac_to_plot, n.pops,
                                   conf['system_params']['output_path'],
                                   plot_filename, conf)

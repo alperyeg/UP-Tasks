@@ -1,6 +1,6 @@
 from scaling import Scaling
 from connectivity import Connectivity
-from helper_functions import Help_func
+import helper_functions
 from pyNN.random import NumpyRNG, RandomDistribution
 import numpy as np
 
@@ -10,10 +10,7 @@ class Network:
     def __init__(self, sim):
         return None
 
-
     def setup(self, sim, conf):
-        from Init_microcircuit import Init_microcircuit
-        mc = Init_microcircuit(conf)
 
         # extract parameters
         pyseed = conf['params_dict']['nest']['pyseed']
@@ -50,7 +47,7 @@ class Network:
         d_mean = conf['d_mean']
         d_sd = conf['d_sd']
         frac_record_v = conf['params_dict']['nest']['frac_record_v']
-        n_rec = Help_func.get_n_rec(conf)
+        n_rec = helper_functions.get_n_rec(conf)
 
         # if parallel_safe=False, PyNN offsets the seeds by 1 for each rank
         script_rng = NumpyRNG(seed=pyseed,
@@ -79,7 +76,7 @@ class Network:
             for pop in pops:
                 self.K_ext[layer][pop] = K_scaling * K_ext[layer][pop]
 
-        self.w = Help_func.create_weight_matrix(conf)
+        self.w = helper_functions.create_weight_matrix(conf)
         # Network scaling
         if K_scaling != 1:
             self.w, self.w_ext, self.DC_amp = Scaling.adjust_w_and_ext_to_K(K_full, K_scaling, self.w, self.DC_amp, conf)
