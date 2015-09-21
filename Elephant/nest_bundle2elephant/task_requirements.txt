@@ -1,2 +1,0 @@
-quantities==0.10.1
-neo==0.4.0
