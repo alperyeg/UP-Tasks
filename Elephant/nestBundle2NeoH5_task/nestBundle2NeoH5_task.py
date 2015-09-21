@@ -52,7 +52,7 @@ def nestBundle2NeoH5_task(nest_bundle_file, t_start, t_stop):
         seg = input_file.read_segment(gdf_id_list=[],
                                       t_start=t_start * pq.ms,
                                       t_stop=t_stop * pq.ms)
-        output_filename = gdf.split('.')[0] + '.h5'
+        output_filename = os.path.splitext(gdf)[0] + '.h5'
         output_file = neo.io.NeoHdf5IO(output_filename)
         output_file.write(seg.spiketrains)
         output_file.close()
