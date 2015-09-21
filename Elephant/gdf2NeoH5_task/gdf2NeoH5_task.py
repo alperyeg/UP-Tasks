@@ -2,6 +2,7 @@
 import quantities as pq
 import gdfio
 import neo
+import os
 from active_worker.task import task
 from task_types import TaskTypes as tt
 
@@ -21,7 +22,7 @@ def gdf2NeoH5_task(gdf_file, t_start, t_stop, gdf_id_list):
             - FDAT
         Compatible_queues: ['cscs_viz', 'cscs_bgq', 'epfl_viz']
         Accepts:
-            gdf:
+            gdf_file:
                 type: application/vnd.juelich.nest.spike_times
                 description: Input file that contains spiking data from a
                     NEST simulation in gdf format.
@@ -45,7 +46,7 @@ def gdf2NeoH5_task(gdf_file, t_start, t_stop, gdf_id_list):
     seg = input_file.read_segment(gdf_id_list=gdf_id_list,
                                   t_start=t_start * pq.ms,
                                   t_stop=t_stop * pq.ms)
-    output_filename = gdf.split('.')[0] + '.h5'
+    output_filename = os.path.splitext(gdf)[0] + '.h5'
     output_file = neo.io.NeoHdf5IO(output_filename)
     output_file.write(seg.spiketrains)
     output_file.close()
