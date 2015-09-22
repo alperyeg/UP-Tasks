@@ -24,8 +24,8 @@ def gdf2NeoH5_task(gdf_file, t_start, t_stop, gdf_id_list):
         Accepts:
             gdf_file:
                 type: application/vnd.juelich.nest.spike_times
-                description: Input file that contains spiking data from a
-                    NEST simulation in gdf format.
+                description: Input file that contains spike data from a
+                    NEST simulation in GDF format.
             t_start:
                 type: double
                 description: Start time in ms of spike train recording.
@@ -35,11 +35,15 @@ def gdf2NeoH5_task(gdf_file, t_start, t_stop, gdf_id_list):
             gdf_id_list:
                 type: list(long)
                 description: Neuron IDs in the input file that should be
-                    extracted, e.g., [1, 2, 3]. Provide an empty list [] to
-                    extract all neurons with at least one spike.
+                    extracted, e.g., [1, 2, 3]. Provide a negative number, e.g.,
+                    -1 to extract all neurons with at least one spike.
         Returns:
             res: application/unknown
     """
+
+    # GdfIO expects an empty list for loading all neuron IDs
+    if any(n<0 for n in gdf_id_list):
+        gdf_id_list = []
 
     gdf = gdf2NeoH5_task.task.uri.get_file(gdf_file)
     input_file = gdfio.GdfIO(gdf)
@@ -51,16 +55,18 @@ def gdf2NeoH5_task(gdf_file, t_start, t_stop, gdf_id_list):
     output_file.write(seg.spiketrains)
     output_file.close()
 
+    output_dst = output_filename.split('/')[-1]
+
     return gdf2NeoH5_task.task.uri.save_file(
         mime_type='application/unknown',
         src_path=output_filename,
-        dst_path=output_filename)
+        dst_path=output_dst)
 
 
 if __name__ == '__main__':
     input_filename = tt.URI('application/unknown',
-                            'collected_spikes_L6I-296.gdf')
+                            'spikes_L4E-77177-0.gdf')
     t_start = 0.
     t_stop = 300.
-    gdf_id_list = []
+    gdf_id_list = [-1]
     gdf2NeoH5_task(input_filename, t_start, t_stop, gdf_id_list)
