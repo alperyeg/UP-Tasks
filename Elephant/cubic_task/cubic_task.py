@@ -1,11 +1,12 @@
 import elephant
+import neo
+import os
 from elephant import cubic
 import matplotlib
 matplotlib.use('Agg')
 import matplotlib.pyplot as plt
 import numpy as np
 import quantities as pq
-from neo import io
 from active_worker.task import task
 from task_types import TaskTypes as tt
 
@@ -38,7 +39,7 @@ def cubic_task(h5_file, binsize, alpha):
             res: image/png
     """
     h5_path = cubic_task.task.uri.get_file(h5_file)
-    ion = io.NeoHdf5IO(filename=h5_path)
+    ion = neo.io.NeoHdf5IO(filename=h5_path)
     number_of_spike_trains = ion.get_info()['SpikeTrain']
 
     spiketrains = []
@@ -61,9 +62,10 @@ def cubic_task(h5_file, binsize, alpha):
     plt.title('$\hat\\xi$=' + str(result[0]))
 
     out_file_name = 'result_cubic.png'
-    with open(out_file_name, 'w') as result_pth:
+    output_filename = os.path.splitext(h5_path)[0] + '.png'
+    with open(output_filename, 'w') as result_pth:
         plt.savefig(result_pth, dpi=100)
-    dst_name = 'result_cubic.png'
+    dst_name = output_filename.split('/')[-1]
     return cubic_task.task.uri.save_file(mime_type='image/png',
                                          src_path=out_file_name,
                                          dst_path=dst_name)
@@ -71,7 +73,7 @@ def cubic_task(h5_file, binsize, alpha):
 
 if __name__ == '__main__':
     input_filename = tt.URI('application/unknown',
-                            'spikes_L23I-23180-0.h5')
+                            'spikes_L5I-44930-0.h5')
     alpha = 0.05
     binsize = 1
     cubic_task(input_filename, binsize, alpha)
