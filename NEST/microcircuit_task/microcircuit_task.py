@@ -63,7 +63,8 @@ def microcircuit_task(configuration_file, simulation_duration, thalamic_input, t
 
     # load default config file
     default_cfile = 'microcircuit.yaml'
-    with open('./' + default_cfile, 'r') as f:  # datapath necessary
+    yaml_path = os.path.join(os.path.dirname(__file__), default_cfile)
+    with open(yaml_path) as f:
         default_conf = yaml.load(f)
 
     # create config by merging user and default dicts
@@ -291,7 +292,7 @@ def _run_microcircuit(plot_filename, conf):
     return results
 
 if __name__ == '__main__':
-    configuration_file = 'microcircuit.yaml'  # user_config.yaml
+    configuration_file = 'microcircuit.yaml' #'user_config.yaml'
     simulation_duration = 1000.
     thalamic_input = True
     threads = 4
