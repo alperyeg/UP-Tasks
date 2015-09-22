@@ -64,5 +64,5 @@ if __name__ == '__main__':
                             'spikes_L4E-77177-0.gdf')
     t_start = 0.
     t_stop = 300.
-    gdf_id_list = [-1]
+    gdf_id_list = []
     gdf2NeoH5_task(input_filename, t_start, t_stop, gdf_id_list)
