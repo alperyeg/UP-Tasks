@@ -24,15 +24,15 @@ def cubic_task(h5_file, binsize, alpha):
             - FDAT
         Compatible_queues: ['cscs_viz', 'cscs_bgq', 'epfl_viz']
         Accepts:
-            input_data:
+            h5_file:
                 type: application/unknown
                 description: Input file that contains spiking data from a
                     HDF5 file.
             binsize:
-                type: long
+                type: double
                 description: Bin width used to compute the PSTH in ms.
             alpha:
-                type: long
+                type: double
                 description: The significance level of the test.
 
         Returns:
