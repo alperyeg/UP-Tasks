@@ -30,10 +30,10 @@ def nestBundle2NeoH5_task(nest_bundle_file, t_start, t_stop):
                     spike train data in GDF format.
             t_start:
                 type: double
-                description: Start time of spike train recording.
+                description: Start time in ms of spike train recording.
             t_stop:
                 type: double
-                description: Stop time of spike train recording.
+                description: Stop time in ms of spike train recording.
         Returns:
             res: application/unknown
     """

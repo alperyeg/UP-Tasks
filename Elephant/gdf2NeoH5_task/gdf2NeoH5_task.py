@@ -28,10 +28,10 @@ def gdf2NeoH5_task(gdf_file, t_start, t_stop, gdf_id_list):
                     NEST simulation in gdf format.
             t_start:
                 type: double
-                description: Start time of spike train recording.
+                description: Start time in ms of spike train recording.
             t_stop:
                 type: double
-                description: Stop time of spike train recording.
+                description: Stop time in ms of spike train recording.
             gdf_id_list:
                 type: list(long)
                 description: Neuron IDs in the input file that should be
