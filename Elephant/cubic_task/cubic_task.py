@@ -1,7 +1,7 @@
-import elephant
 import neo
 import os
 from elephant import cubic
+from psth import time_histogram
 import matplotlib
 matplotlib.use('Agg')
 import matplotlib.pyplot as plt
@@ -17,7 +17,7 @@ def cubic_task(h5_file, binsize, alpha):
         Task Manifest Version: 1
         Full Name: cubic_task
         Caption: cubic
-        Author: Elephant_Developers
+        Author: Elephant Developers
         Description: |
             Analyses the correlation of parallel recorded spike trains
         Categories:
@@ -49,8 +49,7 @@ def cubic_task(h5_file, binsize, alpha):
 
     ion.close()
 
-    psth_as = elephant.statistics.time_histogram(spiketrains,
-                                                 binsize=binsize * pq.ms)
+    psth_as = time_histogram(spiketrains, binsize=binsize * pq.ms)
 
     result = cubic.cubic(psth_as, alpha=alpha)
 
