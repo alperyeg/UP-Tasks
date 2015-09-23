@@ -18,7 +18,7 @@ def nestBundle2NeoH5_task(nest_bundle_file, t_start, t_stop):
         Description: |
             Takes a bundle of NEST output files
             (application/vnd.juelich.bundle.nest.data), extracts the GDF files
-            which contain spike train data, converts them to Neo HDF5 files
+            which contain spike data, converts them to Neo HDF5 files
             and returns a corresponding bundle file.
         Categories:
             - FDAT
@@ -27,7 +27,7 @@ def nestBundle2NeoH5_task(nest_bundle_file, t_start, t_stop):
             nest_bundle_file:
                 type: application/vnd.juelich.bundle.nest.data
                 description: Input bundle file of NEST output containing
-                    spike train data in GDF format.
+                    spike data in GDF format.
             t_start:
                 type: double
                 description: Start time in ms of spike train recording.
@@ -39,16 +39,15 @@ def nestBundle2NeoH5_task(nest_bundle_file, t_start, t_stop):
     """
 
     input_path = nestBundle2NeoH5_task.task.uri.get_bundle(nest_bundle_file)
-    input_files = glob.glob(os.path.split(input_path)[0] +'/'+ '*.gdf')
-    print input_files
-    # h5_bundle_mime_type = "application/vnd.juelich.bundle.nest.data"
+    input_files = glob.glob(os.path.dirname(input_path) + '/' + '*.gdf')
+
+    # no h5 specific mime type available
     h5_bundle_mime_type = "application/unknown"
     bundle = nestBundle2NeoH5_task.task.uri.build_bundle(h5_bundle_mime_type)
-    for input_fn in input_files:
-        gdf = nestBundle2NeoH5_task.task.uri.get_file(tt.URI(
-            h5_bundle_mime_type, input_fn))
+
+    for gdf in input_files:
         input_file = gdfio.GdfIO(gdf)
-        # In a bundle all Neurons that spike at least once are registered
+        # in a bundle all neurons that spike at least once are registered
         seg = input_file.read_segment(gdf_id_list=[],
                                       t_start=t_start * pq.ms,
                                       t_stop=t_stop * pq.ms)
@@ -56,10 +55,14 @@ def nestBundle2NeoH5_task(nest_bundle_file, t_start, t_stop):
         output_file = neo.io.NeoHdf5IO(output_filename)
         output_file.write(seg.spiketrains)
         output_file.close()
+
+        output_dst = os.path.basename(output_filename)
+
         bundle.add_file(src_path=output_filename,
-                        dst_path=output_filename,
-                        bundle_path=output_filename,
+                        dst_path=output_dst,
+                        bundle_path=output_dst,
                         mime_type=h5_bundle_mime_type)
+
     return bundle.save("neo_h5_bundle")
 
 
