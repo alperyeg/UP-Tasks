@@ -61,13 +61,12 @@ def cubic_task(h5_file, binsize, alpha):
     plt.ylabel('P value')
     plt.title('$\hat\\xi$=' + str(result[0]))
 
-    out_file_name = 'result_cubic.png'
     output_filename = os.path.splitext(h5_path)[0] + '.png'
     with open(output_filename, 'w') as result_pth:
         plt.savefig(result_pth, dpi=100)
     dst_name = output_filename.split('/')[-1]
     return cubic_task.task.uri.save_file(mime_type='image/png',
-                                         src_path=out_file_name,
+                                         src_path=output_filename,
                                          dst_path=dst_name)
 
 
