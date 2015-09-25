@@ -31,6 +31,6 @@ def single_neuron(spike_times, sim_duration):
     plt.savefig(filename, dpi=300)
 
 if __name__ == '__main__':
-    spike_times = [10., 30., 70.]
+    spike_times = [10., 50.]
     sim_duration = 100.
     single_neuron(spike_times, sim_duration)
