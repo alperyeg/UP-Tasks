@@ -2,10 +2,10 @@
 import quantities as pq
 import gdfio
 import neo
-from active_worker.task import task
-from task_types import TaskTypes as tt
 import glob
 import os
+from active_worker.task import task
+from task_types import TaskTypes as tt
 
 
 @task
@@ -13,14 +13,16 @@ def nestBundle2NeoH5_task(nest_bundle_file, t_start, t_stop):
     """
         Task Manifest Version: 1
         Full Name: nestBundle2NeoH5_task
-        Caption: nestBundle2NeoH5
-        Author: NEST and Elephant developers
+        Caption: Convert NEST bundle to NeoHdf5 bundle
+        Author: NEST and Elephant Developers
         Description: |
-            Takes a bundle of NEST output files
-            (application/vnd.juelich.bundle.nest.data), extracts the GDF files
-            which contain spike data, converts them to Neo HDF5 files
-            and returns a corresponding bundle file.
+            Takes a bundle of NEST (http://nest-simulator.org/) output files,
+            extracts the GDF files which contain spike data, converts them to
+            Neo HDF5 files which can be processed by
+            Elephant (http://neuralensemble.org/elephant).
+            It returns a bundle containing the HDF5 files.
         Categories:
+            - NEST
             - FDAT
         Compatible_queues: ['cscs_viz', 'cscs_bgq', 'epfl_viz']
         Accepts:
@@ -40,8 +42,7 @@ def nestBundle2NeoH5_task(nest_bundle_file, t_start, t_stop):
 
     input_path = nestBundle2NeoH5_task.task.uri.get_bundle(nest_bundle_file)
     input_files = glob.glob(input_path + '/' + '*.gdf')
-    print input_path
-    print input_files
+
     # no h5 specific mime type available
     h5_bundle_mime_type = "application/unknown"
     bundle = nestBundle2NeoH5_task.task.uri.build_bundle(h5_bundle_mime_type)
