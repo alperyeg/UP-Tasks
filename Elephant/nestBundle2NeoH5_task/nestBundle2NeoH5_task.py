@@ -39,8 +39,9 @@ def nestBundle2NeoH5_task(nest_bundle_file, t_start, t_stop):
     """
 
     input_path = nestBundle2NeoH5_task.task.uri.get_bundle(nest_bundle_file)
-    input_files = glob.glob(os.path.dirname(input_path) + '/' + '*.gdf')
-
+    input_files = glob.glob(input_path + '/' + '*.gdf')
+    print input_path
+    print input_files
     # no h5 specific mime type available
     h5_bundle_mime_type = "application/unknown"
     bundle = nestBundle2NeoH5_task.task.uri.build_bundle(h5_bundle_mime_type)
