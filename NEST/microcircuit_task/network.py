@@ -1,5 +1,5 @@
-from scaling import Scaling
-from connectivity import Connectivity
+import scaling
+import connectivity
 import helper_functions
 from pyNN.random import NumpyRNG, RandomDistribution
 import numpy as np
@@ -69,7 +69,7 @@ class Network:
                            'L6': {'E': 0., 'I': 0.}}
 
         # In-degrees of the full-scale and scaled models
-        K_full = Scaling.get_indegrees(conf)
+        K_full = scaling.get_indegrees(conf)
         self.K = K_scaling * K_full
 
         self.K_ext = {}
@@ -81,7 +81,7 @@ class Network:
         self.w = helper_functions.create_weight_matrix(conf)
         # Network scaling
         if K_scaling != 1:
-            self.w, self.w_ext, self.DC_amp = Scaling.adjust_w_and_ext_to_K(
+            self.w, self.w_ext, self.DC_amp = scaling.adjust_w_and_ext_to_K(
                 K_full, K_scaling, self.w, self.DC_amp, conf)
         else:
             self.w_ext = w_mean
@@ -141,9 +141,10 @@ class Network:
             for layer in layers:
                 for pop in pops:
                     print layer, pop, n_rec[layer][pop]
-                    if not record_fraction and n_record > int(round(N_full[layer][pop] * N_scaling)):
-                        print 'Note that requested number of neurons to record exceeds ', \
-                            layer, pop, ' population size'
+                    if not record_fraction and n_record > \
+                       int(round(N_full[layer][pop] * N_scaling)):
+                        print 'Note that requested number of neurons to record',
+                        print 'exceeds ', layer, pop, ' population size'
 
         # Create cortical populations
         self.pops = {}
@@ -175,10 +176,6 @@ class Network:
                 this_pop.initialize('v', V_dist[layer][pop])
 
                 # Spike recording
-                # PYTHON2.6: SINCE SPIKES CANNOT BE RECORDED AT THE MOMENT
-                # USING PYNN'S record(), WE CREATE AND CONNECT SPIKE DETECTORS
-                # WITH PYNEST
-                # this_pop[0:n_rec[layer][pop]].record()
                 sd = sim.nest.Create('spike_detector',
                                      params={
                                          'label': 'spikes_{0}{1}'.format(layer, pop),
@@ -195,10 +192,6 @@ class Network:
                         n_rec_v = round(this_pop.size * frac_record_v)
                     else:
                         n_rec_v = n_record_v
-                    # PYTHON2.6: SINCE VOLTAGES CANNOT BE RECORDED AT THE MOMENT
-                    # USING PYNN'S record_v(), WE CREATE AND CONNECT VOLTMETERS
-                    # WITH PYNEST
-                    # this_pop[0 : n_rec_v].record_v()
                     vm = sim.nest.Create('voltmeter',
                                          params={
                                              'label': 'voltages_{0}{1}'.format(layer, pop),
@@ -215,18 +208,9 @@ class Network:
                         'static_synapse', {'receptor_type': index})
                     sim.nest.Connect(list(this_pop.all_cells),
                                      self.corr_detector)
-                    # PYTHON2.6: reset receptor type because Connect is used
-                    # also for the spike detector and the voltmeter
                     sim.nest.SetDefaults(
                         'static_synapse', {'receptor_type': 0})
 
-        # if record_corr and simulator == 'nest':
-        # reset receptor_type
-        #     sim.nest.SetDefaults('static_synapse', {'receptor_type': 0})
-
-        # Currently, we get an error if we try to generate a population with
-        # sim.SpikeSourcePoisson elements. Therefore, thalamic neurons are
-        # created via PyNEST in this version
         if thalamic_input:
             self.thalamic_population = sim.nest.Create('parrot_neuron',
                                                        thal_params['n_thal'])
@@ -235,23 +219,13 @@ class Network:
             thal_pg = sim.nest.Create('poisson_generator',
                                       params={'rate': thal_params['rate'],
                                               'start': thal_params['start'],
-                                              'stop': thal_params['start'] + thal_params['duration']})
+                                              'stop': thal_params['start'] \
+                                              + thal_params['duration']})
             sim.nest.Connect(thal_pg, self.thalamic_population)
-
-        # Create thalamic population
-        #     self.thalamic_population = sim.Population(thal_params['n_thal'],
-        #                                               sim.SpikeSourcePoisson,
-        #                                               {'rate': thal_params['rate'],
-        #                                                'start': thal_params['start'],
-        #                                                'duration': thal_params['duration']},
-        #                                               label='thalamic_population')
-        #     self.base_neuron_ids[self.thalamic_population] = global_neuron_id
-        #     global_neuron_id += len(self.thalamic_population) + 2
 
         possible_targets_curr = ['inhibitory', 'excitatory']
 
         # Connect
-
         for target_layer in layers:
             for target_pop in pops:
                 target_index = structure[target_layer][target_pop]
@@ -261,11 +235,12 @@ class Network:
                 if input_type == 'poisson':
                     rate = bg_rate * self.K_ext[target_layer][target_pop]
                     if simulator == 'nest':
-                        # create only a single Poisson generator for each population,
-                        # since the native NEST implementation sends
+                        # create only a single Poisson generator for each
+                        # population, since the native NEST implementation sends
                         # independent spike trains to all targets
                         if sim.rank() == 0:
-                            print 'connecting Poisson generator to', target_layer, target_pop
+                            print 'connecting Poisson generator to',
+                            print target_layer, target_pop
 
                         pg = sim.nest.Create(
                             'poisson_generator', params={'rate': rate})
@@ -275,20 +250,21 @@ class Network:
                                     'weight': 1000. * w_ext,
                                     'delay': d_mean['E']}
                         sim.nest.Connect(
-                            pg, list(this_target_pop.all_cells), conn_dict, syn_dict)
+                            pg, list(this_target_pop.all_cells), conn_dict,
+                                                                 syn_dict)
 
                 if thalamic_input:
                     if sim.rank() == 0:
-                        print 'creating thalamic connections to ' + target_layer + target_pop
+                        print 'creating thalamic connections to ', target_layer,
+                        print target_pop
                     C_thal = thal_params['C'][target_layer][target_pop]
                     n_target = N_full[target_layer][target_pop]
-                    K_thal = round(np.log(1 - C_thal) / np.log((n_target * thal_params['n_thal'] - 1.) /
-                                                               (n_target * thal_params['n_thal']))) / n_target * K_scaling
+                    K_thal = round(np.log(1 - C_thal) / \
+                                   np.log(
+                                       (n_target * thal_params['n_thal'] - 1.) /
+                                       (n_target * thal_params['n_thal']))) / \
+                             n_target * K_scaling
 
-                    # Currently, the thalamic populations is created with PyNEST
-                    # (it is not a PyNN Population)
-                    # and has to be connected to the cortical neurons similar to
-                    # FixedTotalNumberConnect()
                     target_neurons = list(this_target_pop.all_cells)
                     n_syn = int(round(K_thal * len(target_neurons)))
                     conn_dict = {'rule': 'fixed_total_number', 'N': n_syn}
@@ -297,18 +273,12 @@ class Network:
                                            'mu': 1000. * w_ext,
                                            'sigma': 1000. * w_rel * w_ext},
                                 'delay': {'distribution': 'normal_clipped',
-                                          'low': conf['simulator_params'][simulator]['min_delay'],
+                                          'low': conf['simulator_params'] \
+                                                     [simulator]['min_delay'],
                                           'mu': d_mean['E'],
                                           'sigma': d_sd['E']}}
                     sim.nest.Connect(self.thalamic_population, target_neurons,
                                      conn_dict, syn_dict)
-
-                    # Connectivity.FixedTotalNumberConnect(sim, self.thalamic_population,
-                    #                                      this_target_pop,
-                    #                                      K_thal, w_ext,
-                    #                                      w_rel * w_ext,
-                    #                                      d_mean['E'],
-                    #                                      d_sd['E'], conf)
 
                 # Recurrent inputs
                 for source_layer in layers:
@@ -320,20 +290,22 @@ class Network:
                         possible_targets_curr[int((np.sign(weight) + 1) / 2)]
 
                         if sim.rank() == 0:
-                            print 'creating connections from ' + source_layer + \
+                            print 'creating connections from ', source_layer + \
                                 source_pop + ' to ' + target_layer + target_pop
 
-                        if source_pop == 'E' and source_layer == 'L4' and target_layer == 'L23' and target_pop == 'E':
+                        if source_pop == 'E' and source_layer == 'L4' and \
+                           target_layer == 'L23' and target_pop == 'E':
                             w_sd = weight * w_rel_234
                         else:
                             w_sd = abs(weight * w_rel)
 
-                        Connectivity.FixedTotalNumberConnect(sim,
-                                                             this_source_pop,
-                                                             this_target_pop,
-                                                             self.K[target_index][
-                                                                 source_index],
-                                                             weight, w_sd,
-                                                             d_mean[source_pop], d_sd[source_pop], conf)
+                        connectivity.FixedTotalNumberConnect(
+                            sim,
+                            this_source_pop,
+                            this_target_pop,
+                            self.K[target_index][
+                                source_index],
+                            weight, w_sd,
+                            d_mean[source_pop], d_sd[source_pop], conf)
 
         return device_list

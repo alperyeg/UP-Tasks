@@ -44,7 +44,7 @@ params_dict:
     record_corr: false, 
     # Whether to save connections to file.
     # Even if save_connections is set to True, at the moment connections are not
-    # saved because the output exceeds the user's default capacity on the UP.
+    # saved because the output exceeds the user's default capacity on the Collaboratory.
     save_connections: false}
 # Simulator back-end, currently it has to be nest
 simulator: nest

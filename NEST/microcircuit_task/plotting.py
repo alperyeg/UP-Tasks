@@ -7,34 +7,27 @@ import glob
 
 def plot_raster_bars(t_start, t_stop, n_rec, frac_to_plot, network_pops,
                      path, filename, conf):
-    # PYTHON2.6: ADDED ARGUMENT network_pops, NEEDED FOR EXTRACTING FIRST
-    # ID PER POPULATION
 
     layers = conf['layers']
     pops = conf['pops']
     n_layers = conf['n_layers']
     n_pops_per_layer = conf['n_pops_per_layer']
 
-    # Dictionary of spike arrays, one entry for each population
+    # dictionary of spike arrays, one entry for each population
     spikes = {}
 
-    # Read out spikes for each population
+    # read out spikes for each population
 
     for layer in layers:
         spikes[layer] = {}
         for pop in pops:
-            filenames = glob.glob(path + 'collected_spikes_' + layer + pop + '*.gdf')
-            assert(len(filenames) == 1), 'Multiple input files found. Use a clean output directory.'
+            filenames = glob.glob(
+                path + 'collected_spikes_' + layer + pop + '*.gdf')
+            assert(
+                len(filenames) == 1), 'Use a clean output directory.'
             try:
                 spike_array = np.loadtxt(filenames[0])
-                # PYTHON2.6: SWAPPED SPIKE TIMES AND ID COLUMNS SINCE
-                # THEY ARE IN DIFFERENT ORDER IN PLAIN NEST .gdf OUTPUT
-                # AND PYNN OUTPUT
                 spike_array[:, [0, 1]] = spike_array[:, [1, 0]]
-                # PYTHON2.6: IN PYNN, NEURON IDS START WITH 0 IN EACH
-                # POPULATION AND IN PLAIN NEST, THEY SUM UP. SUBTRACT
-                # THE FIRST ID OF EACH POPULATION FROM THE NEST
-                # IDS FOR BEING COMPATIBLE WITH THE FOLLOWING PYNN CODE
                 first_id = network_pops[layer][pop].first_id
                 spike_array[:, 1] = [gdf_id - first_id
                                      for gdf_id in
@@ -68,12 +61,14 @@ def plot_raster_bars(t_start, t_stop, n_rec, frac_to_plot, network_pops,
             rate = 0.0
             t_spikes = spikes[layer][pop][:, 0]
             ids = spikes[layer][pop][:, 1] + (id_count + 1)
-            filtered_times_indices = [np.where((t_spikes > t_start) & (t_spikes < t_stop))][0]
+            filtered_times_indices = [
+                np.where((t_spikes > t_start) & (t_spikes < t_stop))][0]
             t_spikes = t_spikes[filtered_times_indices]
             ids = ids[filtered_times_indices]
 
             # Compute rates with all neurons
-            rate = 1000*len(t_spikes) / (t_stop-t_start) / n_rec[layer][pop]
+            rate = 1000 * \
+                len(t_spikes) / (t_stop - t_start) / n_rec[layer][pop]
             rates[layer][pop] = rate
             print layer, pop, np.round(rate, 2)
             # Reduce data for raster plot
@@ -83,10 +78,10 @@ def plot_raster_bars(t_start, t_stop, n_rec, frac_to_plot, network_pops,
             axarr[0].plot(t_spikes, ids, '.', color=color[pop])
             id_count += num_neurons
 
-    rate_list = np.zeros(n_layers*n_pops_per_layer)
+    rate_list = np.zeros(n_layers * n_pops_per_layer)
     for i, layer in enumerate(layer_list):
         for j, pop in enumerate(pop_list):
-            rate_list[i*n_pops_per_layer + j] = rates[layer][pop]
+            rate_list[i * n_pops_per_layer + j] = rates[layer][pop]
 
     # Plot bar plot
     axarr[1].barh(np.arange(0, 8, 1) + 0.1, rate_list[::-1],
