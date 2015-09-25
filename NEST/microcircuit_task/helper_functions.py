@@ -18,7 +18,8 @@ def create_weight_matrix(conf):
                 for source_pop in pops:
                     source_index = conf['structure'][source_layer][source_pop]
                     if source_pop == 'E':
-                        if source_layer == 'L4' and target_layer == 'L23' and target_pop == 'E':
+                        if source_layer == 'L4' and target_layer == 'L23' \
+                           and target_pop == 'E':
                             w[target_index][source_index] = w_234
                         else:
                             w[target_index][source_index] = w_mean
