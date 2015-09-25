@@ -12,7 +12,7 @@ def single_neuron_task(spike_times, sim_duration):
        Task Manifest Version: 1
        Full Name: single_neuron_task
        Caption: Single neuron
-       Author: NEST-Developers
+       Author: NEST Developers
        Description: |
            This script simulates a neuron stimulated by spikes
            with predefined times and creates a plot of the membrane
@@ -23,10 +23,10 @@ def single_neuron_task(spike_times, sim_duration):
        Accepts:
            spike_times:
                type: list(long)
-               description: Times of spikes in ms at which the neuron in stimulated.
+               description: Times of spikes in ms at which the neuron in stimulated (e.g., [10, 50]).
            sim_duration:
                type: double
-               description: Simulation duration in ms.
+               description: Simulation duration in ms (e.g., 100).
        Returns:
            res: image/png
     '''
@@ -53,7 +53,7 @@ def single_neuron_task(spike_times, sim_duration):
     plt.plot(times, voltage)
     plt.xlabel('Time (ms)')
     plt.ylabel('Membrane potential (mV)')
-    filename = 'single_neuron.png'
+    filename = 'single_neuron_task.png'
     plt.savefig(filename, dpi=300)
 
     return single_neuron_task.task.uri.save_file(mime_type='image/png',
@@ -61,6 +61,6 @@ def single_neuron_task(spike_times, sim_duration):
                                                  dst_path=filename)
 
 if __name__ == '__main__':
-    spike_times = [10., 30., 70.]
+    spike_times = [10., 50.]
     sim_duration = 100.
     single_neuron_task(spike_times, sim_duration)
