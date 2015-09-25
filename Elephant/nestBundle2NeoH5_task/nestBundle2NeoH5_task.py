@@ -13,12 +13,12 @@ def nestBundle2NeoH5_task(nest_bundle_file, t_start, t_stop):
     """
         Task Manifest Version: 1
         Full Name: nestBundle2NeoH5_task
-        Caption: Convert NEST bundle to NeoHdf5 bundle
+        Caption: Convert NEST bundle to NeoHDF5 bundle
         Author: NEST and Elephant Developers
         Description: |
             Takes a bundle of NEST (http://nest-simulator.org/) output files,
             extracts the GDF files which contain spike data, converts them to
-            Neo HDF5 files which can be processed by
+            NeoHDF5 files which can be processed by
             Elephant (http://neuralensemble.org/elephant).
             It returns a bundle containing the HDF5 files.
         Categories:
