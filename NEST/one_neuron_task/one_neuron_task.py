@@ -1,14 +1,13 @@
-# This script is a modified implementation of an official NEST example
-# that is able to run as task on the Unified Portal,
-# see www.nest-simulator.org
+# -*- coding: utf-8 -*-
+#
+# This script is a modified implementation of an official
+# NEST example (see http://nest-simulator.org) that can be used as a task
+# on the Collaboratory.
 #
 # Contributors:
+#    NEST Developers
 #    Johanna Senk (j.senk@fz-juelich.de)
-#    Long Phan (l.phan@fz-juelich.de
 #
-# ##############################################################################
-#
-# -*- coding: utf-8 -*-
 #
 # one_neuron.py
 #
@@ -47,16 +46,18 @@ import nest
 import nest.voltage_trace
 from active_worker.task import task
 
+
 @task
 def one_neuron_task():
     '''
        Task Manifest Version: 1
        Full Name: one_neuron_task
-       Caption: one_neuron
-       Author: NEST-Developers
+       Caption: One neuron
+       Author: NEST Developers
        Description: |
            This script simulates a neuron driven by a constant external current
            and records and plots its membrane potential.
+           Simulator: NEST (http://nest-simulator.org)
        Categories:
            - NEST
        Compatible_queues: ['cscs_viz', 'cscs_bgq', 'epfl_viz']

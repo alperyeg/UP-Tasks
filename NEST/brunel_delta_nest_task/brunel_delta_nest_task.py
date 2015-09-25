@@ -1,14 +1,13 @@
-# This script is a modified implementation of an official NEST example
-# that is able to run as task on the Unified Portal,
-# see www.nest-simulator.org
+# -*- coding: utf-8 -*-
+#
+# This script is a modified implementation of an official
+# NEST example (see http://nest-simulator.org) that can be used as a task
+# on the Collaboratory.
 #
 # Contributors:
+#    NEST Developers
 #    Johanna Senk (j.senk@fz-juelich.de)
-#    Long Phan (l.phan@fz-juelich.de
 #
-# ##############################################################################
-#
-# -*- coding: utf-8 -*-
 #
 # brunel_delta_nest.py
 #
@@ -65,29 +64,30 @@ def brunel_delta_nest_task(simulation_time, neuron_number, conn_prob):
     '''
        Task Manifest Version: 1
        Full Name: brunel_delta_nest_task
-       Caption: brunel_delta_nest
-       Author: NEST-Developers
+       Caption: Brunel network simulation
+       Author: NEST Developers
        Description: |
            This script simulates an excitatory and an inhibitory neuron
            population based on the network used in
-           Brunel, N. (2000) J Comput Neurosci 8(3):183-208
+           Brunel, N. (2000) J Comput Neurosci 8(3):183-208.
+           Simulator: NEST (http://nest-simulator.org)
        Categories:
            - NEST
        Compatible_queues: ['cscs_viz', 'cscs_bgq', 'epfl_viz']
        Accepts:
            simulation_time:
                type: double
-               description: simulation time in ms, default=1000.0
+               description: Simulation time in ms [default=1000].
            neuron_number:
                type: long
-               description: number of excitatory (inhibitory) neurons = 4 (1) * neuron_number, default=2500
+               description: Number of excitatory (inhibitory) neurons
+                   = 4 (1) * neuron_number [default=2500].
            conn_prob:
                type: double
-               description: connection probability, default=0.1
+               description: Connection probability [default=0.1].
        Returns:
            res:
                type: image/png
-               description: spike raster of random balanced network
     '''
 
     nest.ResetKernel()
@@ -135,13 +135,13 @@ def brunel_delta_nest_task(simulation_time, neuron_number, conn_prob):
     '''
 
     CE    = int(epsilon*NE) # number of excitatory synapses per neuron
-    CI    = int(epsilon*NI) # number of inhibitory synapses per neuron  
+    CI    = int(epsilon*NI) # number of inhibitory synapses per neuron
     C_tot = int(CI+CE)      # total number of synapses per neuron
 
     '''
     Initialization of the parameters of the integrate and fire neuron and
     the synapses. The parameter of the neuron are stored in a dictionary.
-    ''' 
+    '''
 
     tauMem = 20.0   # time constant of membrane potential in ms
     theta  = 20.0   # membrane threshold potential in mV
@@ -175,7 +175,8 @@ def brunel_delta_nest_task(simulation_time, neuron_number, conn_prob):
     total simulation time.
     '''
 
-    nest.SetKernelStatus({"resolution": dt, "print_time": True, "overwrite_files": True})
+    nest.SetKernelStatus({"resolution": dt, "print_time": True,
+                          "overwrite_files": True})
 
     print("Building network")
 
