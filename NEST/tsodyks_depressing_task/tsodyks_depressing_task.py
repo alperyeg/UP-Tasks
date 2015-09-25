@@ -1,15 +1,13 @@
-# This script is a modified implementation of an official NEST example
-# that is able to run as task on the Unified Portal,
-# see www.nest-simulator.org
+# -*- coding: utf-8 -*-
+#
+# This script is a modified implementation of an official
+# NEST example (see http://nest-simulator.org) that can be used as a task
+# on the Collaboratory.
 #
 # Contributors:
+#    NEST Developers
 #    Johanna Senk (j.senk@fz-juelich.de)
-#    Long Phan (l.phan@fz-juelich.de
 #
-# ##############################################################################
-#
-#
-# -*- coding: utf-8 -*-
 #
 # tsodyks_depressing.py
 #
@@ -31,7 +29,7 @@
 # along with NEST.  If not, see <http://www.gnu.org/licenses/>.
 
 '''
-tsodyks depressing example 
+tsodyks depressing example
 --------------------------
 
 This scripts simulates two neurons. One is driven with dc-input and
@@ -65,13 +63,14 @@ def tsodyks_depressing_task():
     '''
        Task Manifest Version: 1
        Full Name: tsodyks_depressing_task
-       Caption: tsodyks_depressing
-       Author: NEST-Developers
+       Caption: Tsodyks synapse
+       Author: NEST Developers
        Description: |
-           This scripts simulates two neurons. One is driven with dc-input and
-           connected to the other one with a depressing tsodyks synapse. The
+           This scripts simulates two neurons. One is driven with DC-input and
+           connected to the other one with a depressing Tsodyks synapse. The
            membrane potential trace of the second neuron is recorded and
            plotted.
+           Simulator: NEST (http://nest-simulator.org)
        Categories:
            - NEST
        Compatible_queues: ['cscs_viz', 'cscs_bgq', 'epfl_viz']
