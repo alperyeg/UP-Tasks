@@ -22,8 +22,8 @@ def single_neuron_task(spike_times, sim_duration):
        Compatible_queues: ['cscs_viz', 'cscs_bgq', 'epfl_viz']
        Accepts:
            spike_times:
-               type: list(long)
-               description: Times of spikes in ms at which the neuron in stimulated (e.g., [10, 50]).
+               type: list(double)
+               description: Spike times in ms at which the neuron is stimulated (e.g., [10, 50]).
            sim_duration:
                type: double
                description: Simulation duration in ms (e.g., 100).
