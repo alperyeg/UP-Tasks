@@ -17,13 +17,14 @@ def single_neuron_task(spike_times, sim_duration):
            This script simulates a neuron stimulated by spikes
            with predefined times and creates a plot of the membrane
            potential trace.
+           Simulator: NEST (http://nest-simulator.org)
        Categories:
            - NEST
        Compatible_queues: ['cscs_viz', 'cscs_bgq', 'epfl_viz']
        Accepts:
            spike_times:
-               type: list(long)
-               description: Times of spikes in ms at which the neuron in stimulated (e.g., [10, 50]).
+               type: list(double)
+               description: Spike times in ms at which the neuron is stimulated (e.g., [10, 50]).
            sim_duration:
                type: double
                description: Simulation duration in ms (e.g., 100).
