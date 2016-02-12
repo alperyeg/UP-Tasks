@@ -15,7 +15,7 @@ import os
 
 
 @task
-def pairwise_correlation_task(inputdata, binsize):
+def pairwise_correlation_histogram_task(inputdata, binsize):
     '''
         Task Manifest Version: 1
         Full Name: pairwise_correlation_histogram_task
@@ -38,7 +38,7 @@ def pairwise_correlation_task(inputdata, binsize):
     # Load data
     # =========================================================================
     # stage the input file
-    original_path = pairwise_correlation_task.task.uri.get_file(inputdata)
+    original_path = pairwise_correlation_histogram_task.task.uri.get_file(inputdata)
 
     session = neo.NeoHdf5IO(filename=original_path)
     block = session.read_block()
@@ -60,11 +60,12 @@ def pairwise_correlation_task(inputdata, binsize):
     with open(output_filename, 'w') as result_pth:
         plt.savefig(result_pth, dpi=100)
     dst_name = os.path.basename(output_filename)
-    return pairwise_correlation_task.task.uri.save_file(mime_type='image/png',
-                                                        src_path=output_filename,
-                                                        dst_path=dst_name)
+    session.close()
+    return pairwise_correlation_histogram_task.task.uri.save_file(mime_type='image/png',
+                                                                  src_path=output_filename,
+                                                                  dst_path=dst_name)
 
 if __name__ == '__main__':
     inputdata = tt.URI('application/unknown', 'experiment.h5')
     binsize = 5
-    pairwise_correlation_task(inputdata, binsize)
+    pairwise_correlation_histogram_task(inputdata, binsize)
