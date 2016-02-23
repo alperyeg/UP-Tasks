@@ -240,7 +240,7 @@ class Network:
                         # population, since the native NEST implementation sends
                         # independent spike trains to all targets
                         if sim.rank() == 0:
-                            print('connecting Poisson generator to')
+                            print('Connecting Poisson generator to')
                             print(target_layer, target_pop)
 
                         pg = sim.nest.Create(
@@ -256,7 +256,7 @@ class Network:
 
                 if thalamic_input:
                     if sim.rank() == 0:
-                        print('creating thalamic connections to ', target_layer)
+                        print('Creating thalamic connections to ', target_layer)
                         print(target_pop)
                     C_thal = thal_params['C'][target_layer][target_pop]
                     n_target = N_full[target_layer][target_pop]
@@ -291,7 +291,7 @@ class Network:
                         possible_targets_curr[int((np.sign(weight) + 1) / 2)]
 
                         if sim.rank() == 0:
-                            print('creating connections from ', source_layer + \
+                            print('Creating connections from ', source_layer + \
                                 source_pop + ' to ' + target_layer + target_pop)
 
                         if source_pop == 'E' and source_layer == 'L4' and \
