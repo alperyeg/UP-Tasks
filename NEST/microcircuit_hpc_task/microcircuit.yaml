@@ -15,7 +15,7 @@ params_dict:
     N_scaling: 1.0, 
     # Whether to record from a fixed fraction of neurons in each population.
     # If False, a fixed number of neurons is recorded.
-    record_fraction: true, 
+    record_fraction: false, 
     # Whether to record membrane potentials
     record_v: false, 
     # Fraction of neurons from which to record spikes when record_fraction = True
@@ -35,7 +35,7 @@ params_dict:
     # random number generator seed for NEST Poisson generators
     master_seed: 124678, 
     # Whether to make random numbers independent of the number of processes
-    parallel_safe: false,
+    parallel_safe: true,
     # random number generator seeds for V and connectivity.
     # When parallel_safe is True, only the first is used.
     # When parallel_safe is False, the first num_processes are used.

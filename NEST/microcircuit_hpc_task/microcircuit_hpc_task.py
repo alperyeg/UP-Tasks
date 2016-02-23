@@ -1,5 +1,5 @@
 #!/usr/bin/env python
-from active_worker.task import task
+###from active_worker.task import task
 import yaml
 import matplotlib
 matplotlib.use('Agg')
@@ -7,11 +7,17 @@ import time
 import os
 import glob
 import numpy as np
-from task_types import TaskTypes as tt
+###from task_types import TaskTypes as tt
 import helper_functions
 
+import readline # needed for testing with anaconda3
 
-@task
+# we here only need nest as simulator, simulator = 'nest'
+import pyNN.nest as sim
+from mpi4py import MPI
+COMM = MPI.COMM_WORLD
+
+###@task
 def microcircuit_task(configuration_file,
                       simulation_duration,
                       thalamic_input,
@@ -62,7 +68,8 @@ def microcircuit_task(configuration_file,
     '''
 
     # load config file provided by user
-    user_cfile = microcircuit_task.task.uri.get_file(configuration_file)
+    ###user_cfile = microcircuit_task.task.uri.get_file(configuration_file)
+    user_cfile = configuration_file # NEW
     with open(user_cfile, 'r') as f:
         user_conf = yaml.load(f)
 
@@ -86,22 +93,23 @@ def microcircuit_task(configuration_file,
     plot_filename = 'spiking_activity.png'
 
     # create bundle & export bundle, mime type for nest simulation output
-    my_bundle_mimetype = "application/vnd.juelich.bundle.nest.data"
-    bundle = microcircuit_task.task.uri.build_bundle(my_bundle_mimetype)
+    ###my_bundle_mimetype = "application/vnd.juelich.bundle.nest.data"
+    ###bundle = microcircuit_task.task.uri.build_bundle(my_bundle_mimetype)
 
     results = _run_microcircuit(plot_filename, conf)
 
     # print and return bundle
-    print "results = ", results
+    ### print("results = ", results)
 
-    for file_name, file_mimetype in results:
-        bundle.add_file(src_path=file_name,
-                        dst_path=file_name,
-                        bundle_path=file_name,
-                        mime_type=file_mimetype)
+    ###for file_name, file_mimetype in results:
+    ####     bundle.append(file_name, file_mimetype) # NEW
+        ###bundle.add_file(src_path=file_name,
+        ###                dst_path=file_name,
+        ###                bundle_path=file_name,
+        ###                mime_type=file_mimetype)
 
-    my_bundle_name = 'microcircuit_model_bundle'
-    return bundle.save(my_bundle_name)
+    ###my_bundle_name = 'microcircuit_model_bundle'
+    ###return bundle.save(my_bundle_name)
 
 
 def _run_microcircuit(plot_filename, conf):
@@ -109,9 +117,6 @@ def _run_microcircuit(plot_filename, conf):
     import logging
 
     simulator = conf['simulator']
-    # we here only need nest as simulator, simulator = 'nest'
-    import pyNN.nest as sim
-
     # prepare simulation
     logging.basicConfig()
 
@@ -134,8 +139,8 @@ def _run_microcircuit(plot_filename, conf):
     if simulator == 'nest':
         n_vp = sim.nest.GetKernelStatus('total_num_virtual_procs')
         if sim.rank() == 0:
-            print 'n_vp: ', n_vp
-            print 'master_seed: ', master_seed
+            print('n_vp: ', n_vp)
+            print('master_seed: ', master_seed)
         sim.nest.SetKernelStatus({'print_time': False,
                                   'dict_miss_is_error': False,
                                   'grng_seed': master_seed,
@@ -143,6 +148,9 @@ def _run_microcircuit(plot_filename, conf):
                                                      master_seed + n_vp + 1),
                                   'data_path': conf['system_params'] \
                                                    ['output_path']})
+        sim.nest.set_verbosity(30) # M_ERROR: do inform me about severe errors only
+        if sim.num_processes() > 1: # MPI
+            sim.nest.SetNumRecProcesses(1) # use global spike detector
 
     import network
 
@@ -159,65 +167,76 @@ def _run_microcircuit(plot_filename, conf):
 
     end_netw = time.time()
     if sim.rank() == 0:
-        print 'Creating the network took ', end_netw - start_netw, ' s'
+        print('Creating the network took ', end_netw - start_netw, ' s')
 
     # simulate
     if sim.rank() == 0:
-        print "Simulating..."
+        print("Simulating...")
     start_sim = time.time()
     sim.run(conf['simulator_params'][simulator]['sim_duration'])
     end_sim = time.time()
     if sim.rank() == 0:
-        print 'Simulation took ', end_sim - start_sim, ' s'
+        print('Simulation took ', end_sim - start_sim, ' s')
+    sim.end()
 
     # extract filename from device_list (spikedetector/voltmeter),
     # gid of neuron and thread. merge outputs from all threads
     # into a single file which is then added to the task output.
     for dev in device_list:
-        label = sim.nest.GetStatus(dev)[0]['label']
-        gid = sim.nest.GetStatus(dev)[0]['global_id']
-        # use the file extension to distinguish between spike and voltage
-        # output
-        extension = sim.nest.GetStatus(dev)[0]['file_extension']
-        if extension == 'gdf':  # spikes
-            data = np.empty((0, 2))
-        elif extension == 'dat':  # voltages
-            data = np.empty((0, 3))
-        for thread in xrange(conf['simulator_params']['nest']['threads']):
-            filenames = glob.glob(conf['system_params']['output_path']
-                                  + '%s-*%d-%d.%s' % (label, gid, thread, extension))
-            assert(
-                len(filenames) == 1), 'Multiple input files found. Use a clean output directory.'
-            data = np.vstack([data, np.loadtxt(filenames[0])])
-            # delete original files
-            os.remove(filenames[0])
-        order = np.argsort(data[:, 1])
-        data = data[order]
-        outputfile_name = 'collected_%s-%d.%s' % (label, gid, extension)
-        outputfile = open(outputfile_name, 'w')
-        # the outputfile should have same format as output from NEST.
-        # i.e., [int, float] for spikes and [int, float, float] for voltages,
-        # hence we write it line by line and assign the corresponding filetype
-        if extension == 'gdf':  # spikes
-            for line in data:
-                outputfile.write('%d\t%.3f\n' % (line[0], line[1]))
-            outputfile.close()
-            filetype = 'application/vnd.juelich.nest.spike_times'
+        if sim.nest.GetStatus(dev, 'local')[0]:
+            label = sim.nest.GetStatus(dev)[0]['label']
+            gid = sim.nest.GetStatus(dev)[0]['global_id']
+            # use the file extension to distinguish between spike and voltage
+            # output
+            extension = sim.nest.GetStatus(dev)[0]['file_extension']
+            if extension == 'gdf':  # spikes
+                data = np.empty((0, 2))
+                filetype = 'application/vnd.juelich.nest.spike_times'
+            elif extension == 'dat':  # voltages
+                data = np.empty((0, 3))
+                filetype = 'application/vnd.juelich.nest.analogue_signal'
+            outputfile_name = 'collected_%s-%d.%s' % (label, gid, extension)
 
-        elif extension == 'dat':  # voltages
-            for line in data:
-                outputfile.write(
-                    '%d\t%.3f\t%.3f\n' % (line[0], line[1], line[2]))
-            outputfile.close()
-            filetype = 'application/vnd.juelich.nest.analogue_signal'
+            if sim.num_processes() == 1: # threads only: merge files
+                for thread in range(conf['simulator_params']['nest']['threads']):
+                    filenames = glob.glob(conf['system_params']['output_path']
+                                          + '%s-*%d-%d.%s' % (label, gid, thread, extension))
+                    assert(
+                        len(filenames) == 1), 'Multiple input files found. Use a clean output directory.'
+                    data = np.vstack([data, np.loadtxt(filenames[0])])
+                    # delete original files
+                    os.remove(filenames[0])
+                order = np.argsort(data[:, 1])
+                data = data[order]
+                outputfile = open(outputfile_name, 'w')
+                # the outputfile should have same format as output from NEST.
+                # i.e., [int, float] for spikes and [int, float, float] for voltages,
+                # hence we write it line by line and assign the corresponding filetype
+                if extension == 'gdf':  # spikes
+                    for line in data:
+                        outputfile.write('%d\t%.3f\n' % (line[0], line[1]))
+                    outputfile.close()
 
-        res = (outputfile_name, filetype)
-        results.append(res)
+                elif extension == 'dat':  # voltages
+                    for line in data:
+                        outputfile.write(
+                            '%d\t%.3f\t%.3f\n' % (line[0], line[1], line[2]))
+                    outputfile.close()
+
+            else: # global spike detector: just rename files
+                filenames = glob.glob(conf['system_params']['output_path']
+                                          + '%s-*%d-*.%s' % (label, gid, extension))
+                assert(
+                    len(filenames) == 1), 'Multiple input files found. Use a clean output directory.'
+                os.rename(filenames[0], outputfile_name)
+
+            res = (outputfile_name, filetype)
+            results.append(res)
 
     if record_corr and simulator == 'nest':
         start_corr = time.time()
         if sim.nest.GetStatus(n.corr_detector, 'local')[0]:
-            print 'getting count_covariance on rank ', sim.rank()
+            print('getting count_covariance on rank ', sim.rank())
             cov_all = sim.nest.GetStatus(
                 n.corr_detector, 'count_covariance')[0]
             delta_tau = sim.nest.GetStatus(n.corr_detector, 'delta_tau')[0]
@@ -238,10 +257,11 @@ def _run_microcircuit(plot_filename, conf):
 
             f = open(conf['system_params'][
                      'output_path'] + '/covariances.dat', 'w')
-            print >>f, 'tau_max: ', tau_max
-            print >>f, 'delta_tau: ', delta_tau
-            print >>f, 'simtime: ', conf['simulator_params'][
+            print('tau_max: ' + tau_max, end="", file=f)
+            print('delta_tau: ' + delta_tau, end="", file=f)
+            s = 'simtime: ', conf['simulator_params'][
                 simulator]['sim_duration'], '\n'
+            print(s, end="", file=f)
 
             for target_layer in np.sort(layers.keys()):
                 for target_pop in pops:
@@ -250,14 +270,18 @@ def _run_microcircuit(plot_filename, conf):
                         for source_pop in pops:
                             source_index = conf['structure'][
                                 source_layer][source_pop]
-                            print >>f, target_layer, target_pop, '-', source_layer, source_pop
-                            print >>f, 'n_events_target: ', sim.nest.GetStatus(
+                            s = target_layer, target_pop, '-', source_layer, source_pop
+                            print(s, end="", file=f)
+                            s = 'n_events_target: ', sim.nest.GetStatus(
                                 n.corr_detector, 'n_events')[0][target_index]
-                            print >>f, 'n_events_source: ', sim.nest.GetStatus(
+                            print(s, end="", file=f)
+                            s = 'n_events_source: ', sim.nest.GetStatus(
                                 n.corr_detector, 'n_events')[0][source_index]
+                            print(s, end="", file=f)
                             for i in xrange(len(cov[target_index][source_index])):
-                                print >>f, cov[target_index][source_index][i]
-                            print >>f, ''
+                                s = cov[target_index][source_index][i]
+                                print(s, end="", file=f)
+                            print('', end="", file=f)
             f.close()
 
             # add file covariances.dat into bundle
@@ -266,7 +290,8 @@ def _run_microcircuit(plot_filename, conf):
             results.append(res_cov)
 
         end_corr = time.time()
-        print "Writing covariances took ", end_corr - start_corr, " s"
+        print("Writing covariances took ", end_corr - start_corr, " s")
+    COMM.Barrier()
 
     if plot_spiking_activity and sim.rank() == 0:
         plotting.plot_raster_bars(raster_t_min, raster_t_max, n_rec,
@@ -276,17 +301,18 @@ def _run_microcircuit(plot_filename, conf):
         res_plot = (plot_filename, 'image/png')
         results.append(res_plot)
 
-    sim.end()
-
     return results
 
 if __name__ == '__main__':
     configuration_file = 'user_config.yaml' #'microcircuit.yaml'
     simulation_duration = 1000.
-    thalamic_input = True
-    threads = 4
-    filename = tt.URI(
-        'application/vnd.juelich.simulation.config', configuration_file)
+    thalamic_input = False
+    threads = 16
+    ###filename = tt.URI(
+    ###'application/vnd.juelich.simulation.config', configuration_file)
+    filename = configuration_file # NEW
     result = microcircuit_task(
         filename, simulation_duration, thalamic_input, threads)
-    print result
+    #print('%i out of %i finished' % (sim.rank(),sim.num_processes()))
+    COMM.Barrier()
+    raise Exception()
