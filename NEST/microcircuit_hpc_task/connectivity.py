@@ -33,9 +33,9 @@ def FixedTotalNumberConnect(sim, pop1, pop2, K, w_mean, w_sd, d_mean, d_sd,
     sim.nest.Connect(source_neurons, target_neurons, conn_dict, syn_dict)
 
     if save_connections:
-        print "save_connections was set to True, but connections are \
+        print("save_connections was set to True, but connections are \
             currently not saved because the output exceeds the user's \
-            default capacity on the Collaboratory."
+            default capacity on the Collaboratory.")
         pass
 
     return

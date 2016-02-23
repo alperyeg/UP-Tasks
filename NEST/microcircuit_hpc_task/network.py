@@ -56,9 +56,10 @@ class Network:
         # Compute DC input before scaling
         if input_type == 'DC':
             self.DC_amp = {}
-            for target_layer in layers:
+            for target_layer in sorted(layers):
+                print(target_layer)
                 self.DC_amp[target_layer] = {}
-                for target_pop in pops:
+                for target_pop in sorted(pops):
                     self.DC_amp[target_layer][target_pop] = bg_rate * \
                         K_ext[target_layer][target_pop] * \
                         w_mean * tau_syn_E / 1000.
@@ -73,9 +74,9 @@ class Network:
         self.K = K_scaling * K_full
 
         self.K_ext = {}
-        for layer in layers:
+        for layer in sorted(layers):
             self.K_ext[layer] = {}
-            for pop in pops:
+            for pop in sorted(pops):
                 self.K_ext[layer][pop] = K_scaling * K_ext[layer][pop]
 
         self.w = helper_functions.create_weight_matrix(conf)
@@ -87,9 +88,9 @@ class Network:
             self.w_ext = w_mean
 
         Vthresh = {}
-        for layer in layers:
+        for layer in sorted(layers):
             Vthresh[layer] = {}
-            for pop in pops:
+            for pop in sorted(pops):
                 Vthresh[layer][pop] = v_thresh
 
         # Initial membrane potential distributions
@@ -97,21 +98,21 @@ class Network:
         # This is adjusted here to any changes in v_rest and scaling of V.
         V0_mean = {}
         V0_sd = {}
-        for layer in layers:
+        for layer in sorted(layers):
             V0_mean[layer] = {}
             V0_sd[layer] = {}
-            for pop in pops:
+            for pop in sorted(pops):
                 V0_mean[layer][pop] = (v_rest + Vthresh[layer][pop]) / 2.
                 V0_sd[layer][pop] = (Vthresh[layer][pop] -
                                      v_rest) / 3.
 
         V_dist = {}
-        for layer in layers:
+        for layer in sorted(layers):
             V_dist[layer] = {}
-            for pop in pops:
+            for pop in sorted(pops):
                 V_dist[layer][pop] = RandomDistribution('normal',
-                                                        [V0_mean[layer][pop],
-                                                         V0_sd[layer][pop]],
+                                                        mu=V0_mean[layer][pop],
+                                                        sigma= V0_sd[layer][pop],
                                                         rng=script_rng)
 
         model = getattr(sim, neuron_model)
@@ -127,24 +128,24 @@ class Network:
                                      })
 
         if sim.rank() == 0:
-            print 'neuron_params:', conf['neuron_params']
-            print 'K: ', self.K
-            print 'K_ext: ', self.K_ext
-            print 'w: ', self.w
-            print 'w_ext: ', self.w_ext
-            print 'DC_amp: ', self.DC_amp
-            print 'V0_mean: '
+            print('neuron_params:', conf['neuron_params'])
+            print('K: ', self.K)
+            print('K_ext: ', self.K_ext)
+            print('w: ', self.w)
+            print('w_ext: ', self.w_ext)
+            print('DC_amp: ', self.DC_amp)
+            print('V0_mean: ')
             for layer in layers:
                 for pop in pops:
-                    print layer, pop, V0_mean[layer][pop]
-            print 'n_rec:'
-            for layer in layers:
-                for pop in pops:
-                    print layer, pop, n_rec[layer][pop]
+                    print(layer, pop, V0_mean[layer][pop])
+            print('n_rec:')
+            for layer in sorted(layers):
+                for pop in sorted(pops):
+                    print(layer, pop, n_rec[layer][pop])
                     if not record_fraction and n_record > \
                        int(round(N_full[layer][pop] * N_scaling)):
-                        print 'Note that requested number of neurons to record',
-                        print 'exceeds ', layer, pop, ' population size'
+                        print('Note that requested number of neurons to record')
+                        print('exceeds ', layer, pop, ' population size')
 
         # Create cortical populations
         self.pops = {}
@@ -153,11 +154,10 @@ class Network:
         # list containing the GIDs of recording devices, needed for output
         # bundle
         device_list = []
-        for layer in layers:
+        for layer in sorted(layers):
             self.pops[layer] = {}
-            for pop in pops:
+            for pop in sorted(pops):
                 cellparams = neuron_params
-
                 self.pops[layer][pop] = sim.Population(
                     int(round(N_full[layer][pop] * N_scaling)),
                     model,
@@ -168,12 +168,12 @@ class Network:
                 # Provide DC input in the current-based case
                 # DC input is assumed to be absent in the conductance-based
                 # case
-                this_pop.set('i_offset', self.DC_amp[layer][pop])
+                this_pop.set(i_offset = self.DC_amp[layer][pop])
 
                 self.base_neuron_ids[this_pop] = global_neuron_id
                 global_neuron_id += len(this_pop) + 2
 
-                this_pop.initialize('v', V_dist[layer][pop])
+                this_pop.initialize(v = V_dist[layer][pop])
 
                 # Spike recording
                 sd = sim.nest.Create('spike_detector',
@@ -198,6 +198,7 @@ class Network:
                                              'withtime': True,
                                              'withgid': True,
                                              'to_file': True})
+
                     device_list.append(vm)
                     sim.nest.Connect(vm, list(this_pop[0:n_rec_v]))
 
@@ -226,8 +227,8 @@ class Network:
         possible_targets_curr = ['inhibitory', 'excitatory']
 
         # Connect
-        for target_layer in layers:
-            for target_pop in pops:
+        for target_layer in sorted(layers):
+            for target_pop in sorted(pops):
                 target_index = structure[target_layer][target_pop]
                 this_target_pop = self.pops[target_layer][target_pop]
                 w_ext = self.w_ext
@@ -239,8 +240,8 @@ class Network:
                         # population, since the native NEST implementation sends
                         # independent spike trains to all targets
                         if sim.rank() == 0:
-                            print 'connecting Poisson generator to',
-                            print target_layer, target_pop
+                            print('connecting Poisson generator to')
+                            print(target_layer, target_pop)
 
                         pg = sim.nest.Create(
                             'poisson_generator', params={'rate': rate})
@@ -255,8 +256,8 @@ class Network:
 
                 if thalamic_input:
                     if sim.rank() == 0:
-                        print 'creating thalamic connections to ', target_layer,
-                        print target_pop
+                        print('creating thalamic connections to ', target_layer)
+                        print(target_pop)
                     C_thal = thal_params['C'][target_layer][target_pop]
                     n_target = N_full[target_layer][target_pop]
                     K_thal = round(np.log(1 - C_thal) / \
@@ -281,8 +282,8 @@ class Network:
                                      conn_dict, syn_dict)
 
                 # Recurrent inputs
-                for source_layer in layers:
-                    for source_pop in pops:
+                for source_layer in sorted(layers):
+                    for source_pop in sorted(pops):
                         source_index = structure[source_layer][source_pop]
                         this_source_pop = self.pops[source_layer][source_pop]
                         weight = self.w[target_index][source_index]
@@ -290,15 +291,14 @@ class Network:
                         possible_targets_curr[int((np.sign(weight) + 1) / 2)]
 
                         if sim.rank() == 0:
-                            print 'creating connections from ', source_layer + \
-                                source_pop + ' to ' + target_layer + target_pop
+                            print('creating connections from ', source_layer + \
+                                source_pop + ' to ' + target_layer + target_pop)
 
                         if source_pop == 'E' and source_layer == 'L4' and \
                            target_layer == 'L23' and target_pop == 'E':
                             w_sd = weight * w_rel_234
                         else:
                             w_sd = abs(weight * w_rel)
-
                         connectivity.FixedTotalNumberConnect(
                             sim,
                             this_source_pop,

@@ -34,7 +34,7 @@ def plot_raster_bars(t_start, t_stop, n_rec, frac_to_plot, network_pops,
                                      spike_array[:, 1]]
 
             except IOError:
-                print 'reading spike data from ', filename[0], ' failed'
+                print('reading spike data from ', filename[0], ' failed')
                 pass
             spikes[layer][pop] = spike_array
 
@@ -53,7 +53,7 @@ def plot_raster_bars(t_start, t_stop, n_rec, frac_to_plot, network_pops,
 
     # Plot raster plot
     id_count = 0
-    print "Mean rates"
+    print("Mean rates")
     rates = {}
     for layer in layer_list[-1::-1]:
         rates[layer] = {}
@@ -70,7 +70,7 @@ def plot_raster_bars(t_start, t_stop, n_rec, frac_to_plot, network_pops,
             rate = 1000 * \
                 len(t_spikes) / (t_stop - t_start) / n_rec[layer][pop]
             rates[layer][pop] = rate
-            print layer, pop, np.round(rate, 2)
+            print(layer, pop, np.round(rate, 2))
             # Reduce data for raster plot
             num_neurons = frac_to_plot * n_rec[layer][pop]
             t_spikes = t_spikes[np.where(ids < num_neurons + id_count + 1)[0]]
