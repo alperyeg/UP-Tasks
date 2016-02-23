@@ -2,7 +2,6 @@ import numpy as np
 import matplotlib
 matplotlib.use('Agg')
 import matplotlib.pyplot as plt
-import glob
 
 
 def plot_raster_bars(t_start, t_stop, n_rec, frac_to_plot, network_pops,
@@ -17,16 +16,12 @@ def plot_raster_bars(t_start, t_stop, n_rec, frac_to_plot, network_pops,
     spikes = {}
 
     # read out spikes for each population
-
-    for layer in layers:
+    for layer in sorted(layers)[::-1]:
         spikes[layer] = {}
-        for pop in pops:
-            filenames = glob.glob(
-                path + 'collected_spikes_' + layer + pop + '*.gdf')
-            assert(
-                len(filenames) == 1), 'Use a clean output directory.'
+        for pop in sorted(pops)[::-1]:
+            fname = path + 'collected_spikes_' + layer + pop + '.gdf'
             try:
-                spike_array = np.loadtxt(filenames[0])
+                spike_array = np.loadtxt(fname)
                 spike_array[:, [0, 1]] = spike_array[:, [1, 0]]
                 first_id = network_pops[layer][pop].first_id
                 spike_array[:, 1] = [gdf_id - first_id
@@ -34,14 +29,12 @@ def plot_raster_bars(t_start, t_stop, n_rec, frac_to_plot, network_pops,
                                      spike_array[:, 1]]
 
             except IOError:
-                print('reading spike data from ', filename[0], ' failed')
+                print('reading spike data from ', fname, ' failed')
                 pass
             spikes[layer][pop] = spike_array
 
     # Plot spike times in raster plot and bar plot with the average firing
     # rates of each population
-    layer_list = ['L23', 'L4', 'L5', 'L6']
-    pop_list = ['E', 'I']
     pop_labels = ['L2/3E', 'L2/3I', 'L4E', 'L4I', 'L5E', 'L5I', 'L6E',
                   'L6I']
     color = {'E': '#595289', 'I': '#af143c'}
@@ -55,9 +48,9 @@ def plot_raster_bars(t_start, t_stop, n_rec, frac_to_plot, network_pops,
     id_count = 0
     print("Mean rates")
     rates = {}
-    for layer in layer_list[-1::-1]:
+    for layer in sorted(layers)[::-1]:
         rates[layer] = {}
-        for pop in pop_list[-1::-1]:
+        for pop in sorted(pops)[::-1]:
             rate = 0.0
             t_spikes = spikes[layer][pop][:, 0]
             ids = spikes[layer][pop][:, 1] + (id_count + 1)
@@ -79,8 +72,8 @@ def plot_raster_bars(t_start, t_stop, n_rec, frac_to_plot, network_pops,
             id_count += num_neurons
 
     rate_list = np.zeros(n_layers * n_pops_per_layer)
-    for i, layer in enumerate(layer_list):
-        for j, pop in enumerate(pop_list):
+    for i, layer in enumerate(sorted(layers)):
+        for j, pop in enumerate(sorted(pops)):
             rate_list[i * n_pops_per_layer + j] = rates[layer][pop]
 
     # Plot bar plot
