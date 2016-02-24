@@ -148,10 +148,4 @@ def get_file_content(file_url, headers, check_size_limit=True, MAX_SIZE=2048000)
 
 def get_oidc_auth(token=None):
     """ returns HTTP headers containing OIDC bearer token """
-    try:
-       # this works in jupyter notebooks
-        hdr = get_bbp_client().task.oauth_client.get_auth_header()
-    except:
-        hdr = "Bearer %s" % token
-    return {'Authorization': hdr}
-
+    return {'Authorization': "Bearer %s" % token}
