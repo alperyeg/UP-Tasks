@@ -53,7 +53,7 @@ simulator_params:
 # Parameters for plots of spiking activity
 plot_spiking_activity: true
 # Fraction of recorded neurons to include in raster plot
-frac_to_plot: 0.5
+frac_to_plot: 1.
 # Excitatory and inhibitory population
 pops: {E: 0, I: 1}
 # raster_t_min and raster_t_max include the time scaling factor
@@ -121,7 +121,7 @@ structure:
   L4: {E: 2, I: 3}
   L5: {E: 4, I: 5}
   L6: {E: 6, I: 7}
-system_params: {output_path: ./}
+system_params: {output_path: ./output/}
 # Maximum delay over which to determine covariances
 tau_max: 100.0
 thal_params:

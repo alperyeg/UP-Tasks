@@ -156,8 +156,28 @@ def _run_microcircuit(hpc_url, nodes, conf):
     # wait for finish (ie. success or fail) - this can take a while!
     unicore_client.wait_for_completion(job_url, auth)
 
+    # list of tuples for all output files that shall be returned in a bundle:
+    # (file name, file type)
     results = []
-    # TODO collect output files
+    # go through all created output files and assign file types
+    filenames  = conf['system_params']['output_path'] + '*')
+    for f in filenames:
+        fname, extension = os.path.splitext(f)
+        if extension == '.gdf':
+            filetype = 'application/vnd.juelich.nest.spike_times'
+        elif extension == '.png':
+            filetype = 'image/png'
+        elif extension == '.dat':
+            if 'voltages' in fname:
+                filetype = 'application/vnd.juelich.nest.analogue_signal'
+            elif 'covariances' in fname:
+                filetype = 'text/plain'
+        else:
+            print('unknown filetype: ', fname)
+            filetype = 'application/unknown'
+        res = (f, filetype)
+        results.append(res)
+
     return results
 
 
