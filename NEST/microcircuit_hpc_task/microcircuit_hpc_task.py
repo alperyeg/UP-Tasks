@@ -5,6 +5,13 @@ from active_worker.task import task
 from task_types import TaskTypes as tt
 import unicore_client
 
+def load_local_file(name):
+    """ loads local file and returns contents as string """
+    file_path = os.path.join(os.path.dirname(__file__), name)
+    with open(file_path) as f:
+        return f.read()
+    
+
 @task
 def microcircuit_task(configuration_file,
                       simulation_duration,
@@ -111,27 +118,43 @@ def _run_microcircuit(hpc_url, nodes, conf):
     """
 
     # Auth header for REST calls - this will only work ion the collab
-    auth = unicore_client.get_oidc_auth()
+    oauth_token = microcircuit_task.task.uri.get_oauth_token()
+    auth = unicore_client.get_oidc_auth(oauth_token)
 
+    # setup UNICORE job
     job = {}
     job['ApplicationName'] = "NEST"
+    # TODO probably there is no need yet to distinguish NEST versions
+    #job['ApplicationVersion'] = "2.6.1"
     job['Parameters'] = {}
     job['Parameters']['NESTCODE'] = 'microcircuit.py'
     job['Parameters']['PARAMETERS'] = 'config.yaml'
+    # TODO further arguments
+    #job['Arguments']= [ "arg1", "arg2", "arg3" ]
 
-    # files to upload : yaml config and microcircuit code
+    # TODO resource requests - nodes, runtime etc
+    #job['Resources'] = { 'Nodes': '32' }
+    
+    # files to upload : yaml config, microcircuit code, helper files
     config = {'To': 'config.yaml', 'Data': yaml.dump(conf) }
-    # TODO: load .py file
-    code   = {'To': 'microcircuit.py', 'Data': 'pass' }
-    inputs = [config, code]
+    code   = {'To': 'microcircuit.py', 'Data': load_local_file('microcircuit.py' }
+    connectivity = {'To': 'connectivity.py',
+                'Data': load_local_file('connectivity.py')}
+    network = {'To': 'network.py', 
+               'Data': load_local_file('network.py')}
+    helper = {'To': 'helper_functions.py', 
+              'Data': load_local_file('helper_functions.py')}
+    plotting = {'To': 'plotting.py', 
+                'Data': load_local_file('plotting.py')}
+    scaling = {'To': 'scaling.py', 
+               'Data': load_local_file('scaling.py')}
+    inputs = [config, code, connectivity, network, helper, plotting, scaling]
 
     # submit the job to the selected site
-    job_url = unicore_client.submit(base_url + '/jobs', job, headers, inputs)
+    job_url = unicore_client.submit(hpc_url + '/jobs', job, auth, inputs)
 
     # wait for finish (ie. success or fail) - this can take a while!
-    unicore_client.wait_for_completion(job_url, headers)
-
-    # check if it was successful
+    unicore_client.wait_for_completion(job_url, auth)
 
     results = []
     # TODO collect output files
