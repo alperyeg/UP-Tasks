@@ -4,13 +4,16 @@ matplotlib.use('Agg')
 import matplotlib.pyplot as plt
 
 
-def plot_raster_bars(t_start, t_stop, n_rec, frac_to_plot, network_pops,
-                     path, filename, conf):
+def plot_raster_bars(n_rec, network_pops, conf):
 
     layers = conf['layers']
     pops = conf['pops']
     n_layers = conf['n_layers']
     n_pops_per_layer = conf['n_pops_per_layer']
+    raster_t_min = conf['raster_t_min']
+    raster_t_max = conf['raster_t_max']
+    frac_to_plot = conf['frac_to_plot']
+    output_path = conf['system_params']['output_path']
 
     # dictionary of spike arrays, one entry for each population
     spikes = {}
@@ -19,7 +22,7 @@ def plot_raster_bars(t_start, t_stop, n_rec, frac_to_plot, network_pops,
     for layer in sorted(layers)[::-1]:
         spikes[layer] = {}
         for pop in sorted(pops)[::-1]:
-            fname = path + 'collected_spikes_' + layer + pop + '.gdf'
+            fname = output_path + 'spikes_' + layer + pop + '.gdf'
             try:
                 spike_array = np.loadtxt(fname)
                 spike_array[:, [0, 1]] = spike_array[:, [1, 0]]
@@ -55,13 +58,13 @@ def plot_raster_bars(t_start, t_stop, n_rec, frac_to_plot, network_pops,
             t_spikes = spikes[layer][pop][:, 0]
             ids = spikes[layer][pop][:, 1] + (id_count + 1)
             filtered_times_indices = [
-                np.where((t_spikes > t_start) & (t_spikes < t_stop))][0]
+                np.where((t_spikes > raster_t_min) & (t_spikes < raster_t_max))][0]
             t_spikes = t_spikes[filtered_times_indices]
             ids = ids[filtered_times_indices]
 
             # Compute rates with all neurons
             rate = 1000 * \
-                len(t_spikes) / (t_stop - t_start) / n_rec[layer][pop]
+                len(t_spikes) / (raster_t_max - raster_t_min) / n_rec[layer][pop]
             rates[layer][pop] = rate
             print(layer, pop, np.round(rate, 2))
             # Reduce data for raster plot
@@ -89,5 +92,4 @@ def plot_raster_bars(t_start, t_stop, n_rec, frac_to_plot, network_pops,
     axarr[1].set_yticklabels(pop_labels[::-1])
     axarr[1].set_xlabel('rate (spikes/s)')
 
-    filepath = path + filename
-    plt.savefig(filepath)
+    plt.savefig(output_path + 'spiking_activity.png')
