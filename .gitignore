@@ -1,76 +1,64 @@
-#########################################
-# Editor temporary/working/backup files #
-.#*
-[#]*#
-*~
-*$
-*.bak
-.coverage
-*.kdev4
-*.komodoproject
-.mr.developer.cfg
-nosetests.xml
-*.orig
-.project
-.pydevproject
-.settings
-*.tmp*
-.idea
+#### joe made this: http://goel.io/joe
 
-# Compiled source #
-###################
-*.a
-*.com
-*.class
-*.dll
-*.exe
-*.mo
-*.o
-*.py[ocd]
+#####=== Python ===#####
+
+# Byte-compiled / optimized / DLL files
+__pycache__/
+*.py[cod]
+
+# C extensions
 *.so
 
-# Python files #
-################
-# setup.py working directory
-build
-# other build directories
-bin
-parts
-var
-lib
-lib64
-# sphinx build directory
-doc/_build
-# setup.py dist directory
-dist
-sdist
-# Egg metadata
-*.egg-info
-*.egg
-*.EGG
-*.EGG-INFO
-eggs
-develop-eggs
-# tox testing tool
-.tox
-# Packages
+# Distribution / packaging
+.Python
+env/
+build/
+develop-eggs/
+dist/
+downloads/
+eggs/
+lib/
+lib64/
+parts/
+sdist/
+var/
+*.egg-info/
 .installed.cfg
+*.egg
+
+# PyInstaller
+#  Usually these files are written by a python script from a template
+#  before PyInstaller builds the exe, so as to inject date/other infos into it.
+*.manifest
+*.spec
+
+# Installer logs
 pip-log.txt
-# coverage
-cover
+pip-delete-this-directory.txt
 
-# OS generated files #
-######################
-.directory
-.gdb_history
-.DS_Store?
-ehthumbs.db
-Icon?
-Thumbs.db
+# Unit test / coverage reports
+htmlcov/
+.tox/
+.coverage
+.cache
+nosetests.xml
+coverage.xml
 
-# Things specific to this project #
-###################################
+# Translations
+*.mo
+*.pot
+
+# Django stuff:
+*.log
+
+# Sphinx documentation
+docs/_build/
+
+# PyBuilder
+target/
+
+# Project Specific
+*.zip
 *.h5
-*.json
 *.png
 *.gdf
