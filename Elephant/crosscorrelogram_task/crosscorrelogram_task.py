@@ -52,7 +52,7 @@ def crosscorrelogram_task(inputdata, number_of_jobs, job_id):
     block = session.read_block()
 
     # select spike trains
-    sts = block.filter(use_st=True)
+    sts = block.list_children_by_class(neo.SpikeTrain)
 
     # print("Number of spike trains: " + str(len(sts)))
 

@@ -35,17 +35,15 @@ def lv_histogram_task(input_data):
 
     # open file from path using Neo
     ion = io.NeoHdf5IO(filename=original_path)
-    number_of_SpikeTrains = ion.get_info()['SpikeTrain']
+    spiketrains = ion.read_block().list_children_by_class(neo.SpikeTrain)
 
     # Init result
     res = []
 
     # Query data from hdf5-file
-    for k in range(number_of_SpikeTrains):
-        poisson_data = ion.get("/"+"SpikeTrain_"+str(k))
-
+    for st in spiketrains:
         # Calculate value for lv
-        lv_data = el.statistics.isi(poisson_data)
+        lv_data = el.statistics.isi(st)
         lv = el.statistics.lv(lv_data)
         print "LV = ", lv
 

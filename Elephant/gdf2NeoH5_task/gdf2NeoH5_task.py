@@ -48,9 +48,12 @@ def gdf2NeoH5_task(gdf_file, t_start, t_stop, gdf_id_list):
     seg = input_file.read_segment(gdf_id_list=gdf_id_list,
                                   t_start=t_start * pq.ms,
                                   t_stop=t_stop * pq.ms)
+    blk = neo.Block()
+    blk.segments.append(seg)
+    blk.create_relationship()
     output_filename = os.path.splitext(gdf)[0] + '.h5'
     output_file = neo.io.NeoHdf5IO(output_filename)
-    output_file.write(seg.spiketrains)
+    output_file.write(blk)
     output_file.close()
 
     output_dst = output_filename.split('/')[-1]
@@ -63,7 +66,7 @@ def gdf2NeoH5_task(gdf_file, t_start, t_stop, gdf_id_list):
 
 if __name__ == '__main__':
     input_filename = tt.URI('application/unknown',
-                            'spikes_L4E-77177-0.gdf')
+                            'spikes_L4E.gdf')
     t_start = 0.
     t_stop = 300.
     gdf_id_list = []

@@ -47,13 +47,14 @@ def mean_firingrate_task(inputdata):
     block = session.read_block()
 
     # select spike trains
-    sts = block.filter(use_st=True)
+    spiketrains = block.list_children_by_class(neo.SpikeTrain)
+
 
     # =========================================================================
     # Pairwise_correlation_histogram
     # =========================================================================
 
-    mean_rates = mean_firing_rate(spiketrain, t_start=None, t_stop=None, axis=None)
+    mean_rates = mean_firing_rate(spiketrains, t_start=None, t_stop=None, axis=None)
     filename = 'mean_firingrate_result'
 
     # Store to hdf5
