@@ -9,6 +9,7 @@ from task_types import TaskTypes as tt
 from elephant.conversion import BinnedSpikeTrain
 from elephant.spike_train_correlation import corrcoef
 import quantities as pq
+import numpy as np
 import neo
 import matplotlib.pyplot as plt
 import os
@@ -25,7 +26,7 @@ def pairwise_correlation_histogram_task(inputdata, binsize):
         Description: |
             This task calculates all pair-wise correlations between all
             combinations of spike trains in the input file.
-            The output is a bundle containing an png file showing the 
+            The output is a bundle containing an png file showing the
             correlation result as well as an h5 file with the cross-correlation
             results in a numpy 2d-array.
         Categories:
@@ -47,13 +48,14 @@ def pairwise_correlation_histogram_task(inputdata, binsize):
     # =========================================================================
     # stage the input file
     original_path = pairwise_correlation_histogram_task.task.uri.get_file(inputdata)
+    print original_path
     bundle = pairwise_correlation_histogram_task.task.uri.build_bundle("application/unkown")
 
     session = neo.NeoHdf5IO(filename=original_path)
     block = session.read_block()
 
     # select spike trains
-    sts = block.filter(use_st=True)
+    sts = block.list_children_by_class(neo.SpikeTrain)[:100]
 
     # =========================================================================
     # Pairwise_correlation_histogram
@@ -89,6 +91,6 @@ def pairwise_correlation_histogram_task(inputdata, binsize):
     return bundle.save("bundle_" + filename)
 
 if __name__ == '__main__':
-    inputdata = tt.URI('application/unknown', 'experiment.h5')
+    inputdata = tt.URI('application/unknown', 'spikes_L5E.h5')
     binsize = 5
     pairwise_correlation_histogram_task(inputdata, binsize)
