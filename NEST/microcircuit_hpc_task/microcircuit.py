@@ -1,5 +1,4 @@
 #!/usr/bin/env python
-
 from __future__ import print_function # python 2 & 3 compatible
 import os
 import time
@@ -228,8 +227,8 @@ if __name__ == '__main__':
         # input parameters as in GUI
         user_cfile = 'user_config.yaml'
         simulation_duration = 1000.
-        thalamic_input = False
-        threads = 4
+        thalamic_input = True
+        threads = 16
 
         # load config file provided by user
         with open(user_cfile, 'r') as f:

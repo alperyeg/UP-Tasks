@@ -144,15 +144,15 @@ class Network:
             print('V0_mean: ')
             for layer in layers:
                 for pop in pops:
-                    print(layer, pop, V0_mean[layer][pop])
+                    print(layer + pop + ': ' + str(V0_mean[layer][pop]))
             print('n_rec:')
             for layer in sorted(layers):
                 for pop in sorted(pops):
-                    print(layer, pop, n_rec[layer][pop])
+                    print(layer + pop + ': ' + str(n_rec[layer][pop]))
                     if not record_fraction and n_record > \
                        int(round(N_full[layer][pop] * N_scaling)):
                         print('Note that requested number of neurons to record')
-                        print('exceeds ', layer, pop, ' population size')
+                        print('exceeds ' + layer + pop + ' population size')
 
         # Create cortical populations
         self.pops = {}
@@ -253,8 +253,8 @@ class Network:
                         # population, since the native NEST implementation sends
                         # independent spike trains to all targets
                         if sim.rank() == 0:
-                            print('Connecting Poisson generator to',
-                                  target_layer, target_pop)
+                            print('Connecting Poisson generator to ' +
+                                  target_layer + target_pop)
 
                         pg = sim.nest.Create(
                             'poisson_generator', params={'rate': rate})
@@ -269,8 +269,8 @@ class Network:
 
                 if thalamic_input:
                     if sim.rank() == 0:
-                        print('Creating thalamic connections to ', target_layer,
-                              target_pop)
+                        print('Creating thalamic connections to ' + \
+                              target_layer + target_pop)
                     C_thal = thal_params['C'][target_layer][target_pop]
                     n_target = N_full[target_layer][target_pop]
                     K_thal = round(np.log(1 - C_thal) / \
@@ -304,7 +304,7 @@ class Network:
                         possible_targets_curr[int((np.sign(weight) + 1) / 2)]
 
                         if sim.rank() == 0:
-                            print('Creating connections from ', source_layer + \
+                            print('Creating connections from ' + source_layer + \
                                 source_pop + ' to ' + target_layer + target_pop)
 
                         if source_pop == 'E' and source_layer == 'L4' and \
