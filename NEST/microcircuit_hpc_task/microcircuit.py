@@ -1,16 +1,20 @@
 #!/usr/bin/env python
 
+from __future__ import print_function # python 2 & 3 compatible
 import os
 import time
 import glob
 import yaml
 import logging
 import numpy as np
-import readline # needed for testing with anaconda3
+import readline # needed for testing with anaconda
 import pyNN.nest as sim # only nest as simulator (simulator = 'nest')
-from mpi4py import MPI
-
-COMM = MPI.COMM_WORLD
+try:
+    from mpi4py import MPI
+    COMM = MPI.COMM_WORLD
+    using_mpi4py = True
+except ImportError:
+    using_mpi4py = False
 
 
 def run_microcircuit(conf):
@@ -48,7 +52,9 @@ def run_microcircuit(conf):
         # write parameters to file
         with open(output_path + 'parameters.yaml', 'w') as f:
             f.write(yaml.dump(conf))
-    COMM.Barrier()
+
+    if using_mpi4py:
+        COMM.Barrier()
 
     # prepare simulation
     logging.basicConfig()
@@ -89,7 +95,8 @@ def run_microcircuit(conf):
     if sim.rank() == 0:
         print('Simulation took ', end_sim - start_sim, ' s')
     sim.end()
-    COMM.Barrier()
+    if using_mpi4py:
+        COMM.Barrier()
 
     # merge output files from spike detectors or voltmeters from different
     # threads/ranks
@@ -198,7 +205,8 @@ def run_microcircuit(conf):
 
         end_corr = time.time()
         print("Writing covariances took ", end_corr - start_corr, " s")
-    COMM.Barrier()
+    if using_mpi4py:
+        COMM.Barrier()
 
     if plot_spiking_activity and sim.rank() == 0:
         print('Plotting')
@@ -221,7 +229,7 @@ if __name__ == '__main__':
         user_cfile = 'user_config.yaml'
         simulation_duration = 1000.
         thalamic_input = False
-        threads = 16
+        threads = 4
 
         # load config file provided by user
         with open(user_cfile, 'r') as f:
@@ -245,7 +253,8 @@ if __name__ == '__main__':
         conf['thalamic_input'] = thalamic_input
 
     run_microcircuit(conf)
-    COMM.Barrier()
+
+    if using_mpi4py:
+        COMM.Barrier()
     if sim.rank() == 0:
         raise Exception
-

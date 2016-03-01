@@ -110,10 +110,17 @@ class Network:
         for layer in sorted(layers):
             V_dist[layer] = {}
             for pop in sorted(pops):
-                V_dist[layer][pop] = RandomDistribution('normal',
-                                                        mu=V0_mean[layer][pop],
-                                                        sigma= V0_sd[layer][pop],
-                                                        rng=script_rng)
+                try: # pyNN 0.8.0
+                    V_dist[layer][pop] = RandomDistribution('normal',
+                                                            mu=V0_mean[layer][pop],
+                                                            sigma= V0_sd[layer][pop],
+                                                            rng=script_rng)
+                except TypeError: # pyNN 0.7.5
+                    V_dist[layer][pop] = RandomDistribution('normal',
+                                                            [V0_mean[layer][pop],
+                                                             V0_sd[layer][pop]],
+                                                            rng=script_rng)
+
 
         model = getattr(sim, neuron_model)
 
@@ -168,12 +175,18 @@ class Network:
                 # Provide DC input in the current-based case
                 # DC input is assumed to be absent in the conductance-based
                 # case
-                this_pop.set(i_offset = self.DC_amp[layer][pop])
+                try: # pyNN 0.8.0
+                    this_pop.set(i_offset = self.DC_amp[layer][pop])
+                except TypeError: # pyNN 0.7.5
+                    this_pop.set('i_offset', self.DC_amp[layer][pop])
 
                 self.base_neuron_ids[this_pop] = global_neuron_id
                 global_neuron_id += len(this_pop) + 2
 
-                this_pop.initialize(v = V_dist[layer][pop])
+                try: # pyNN 0.8.0
+                    this_pop.initialize(v = V_dist[layer][pop])
+                except TypeError: # pyNN 0.7.5
+                    this_pop.initialize('v', V_dist[layer][pop])
 
                 # Spike recording
                 sd = sim.nest.Create('spike_detector',
