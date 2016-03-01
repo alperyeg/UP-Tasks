@@ -60,15 +60,14 @@ def microcircuit_task(configuration_file,
                 description: Number of threads NEST uses [default=1].
             nodes:
                 type: long
-                description: Number of compute nodes [default=1].
+                description: Number of compute nodes [default=32].
         Returns:
             res: application/vnd.juelich.bundle.nest.data
     '''
-
     # load config file provided by user
     user_cfile = microcircuit_task.task.uri.get_file(configuration_file)
     with open(user_cfile, 'r') as f:
-        config_file_data=f.readlines()
+        user_conf = yaml.load(f)
 
     # load default config file
     default_cfile = 'microcircuit.yaml'
@@ -99,8 +98,10 @@ def microcircuit_task(configuration_file,
 
     results = _run_microcircuit(hpc_url, nodes, conf)
 
-    # return bundle
-    for file_name, file_mimetype in results:
+    bundle_files = _run_microcircuit(conf)
+    print('files in bundle: \n', bundle_files)
+
+    for file_name, file_mimetype in bundle_files:
         bundle.add_file(src_path=file_name,
                         dst_path=file_name,
                         bundle_path=file_name,
@@ -158,10 +159,10 @@ def _run_microcircuit(hpc_url, nodes, conf):
 
     # list of tuples for all output files that shall be returned in a bundle:
     # (file name, file type)
-    results = []
+    bundle_files = []
     # go through all created output files and assign file types
-    filenames  = conf['system_params']['output_path'] + '*')
-    for f in filenames:
+    filenames  = conf['system_params']['output_path'] + '*'
+    for f in glob.glob(filenames):
         fname, extension = os.path.splitext(f)
         if extension == '.gdf':
             filetype = 'application/vnd.juelich.nest.spike_times'
@@ -172,21 +173,22 @@ def _run_microcircuit(hpc_url, nodes, conf):
                 filetype = 'application/vnd.juelich.nest.analogue_signal'
             elif 'covariances' in fname:
                 filetype = 'text/plain'
+        elif extension == '.yaml':
+            filetype = 'text/plain'
         else:
-            print('unknown filetype: ', fname)
             filetype = 'application/unknown'
         res = (f, filetype)
-        results.append(res)
+        bundle_files.append(res)
 
-    return results
+    return bundle_files
 
 
 if __name__ == '__main__':
     configuration_file = 'user_config.yaml' #'microcircuit.yaml'
     simulation_duration = 1000.
-    thalamic_input = True
+    thalamic_input = False
     threads = 4
-    nodes = 1
+    nodes = 32
     filename = tt.URI(
         'application/vnd.juelich.simulation.config', configuration_file)
     result = microcircuit_hpc_task(
