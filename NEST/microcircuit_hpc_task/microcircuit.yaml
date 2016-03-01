@@ -10,38 +10,38 @@ params_dict:
     # This scaling was not part of the original study, but this option is included
     # here to enable simulations on small systems that give results similar to
     # full-scale simulations.
-    K_scaling: 1.0, 
+    K_scaling: 1.0,
     # Fraction of neurons to simulate
-    N_scaling: 1.0, 
+    N_scaling: 1.0,
     # Whether to record from a fixed fraction of neurons in each population.
     # If False, a fixed number of neurons is recorded.
-    record_fraction: false, 
+    record_fraction: false,
     # Whether to record membrane potentials
-    record_v: false, 
+    record_v: false,
     # Fraction of neurons from which to record spikes when record_fraction = True
-    frac_record_spikes: 0.1, 
+    frac_record_spikes: 0.1,
     # Fraction of neurons from which to record membrane potentials when
     # record_v=True and record_fraction = True
     frac_record_v: 0.1,
     # Number of neurons from which to record spikes when record_fraction = False
-    n_record: 100, 
+    n_record: 100,
     # Fixed number of neurons from which to record membrane potentials when
     # record_v = True and record_fraction = False
-    n_record_v: 20, 
+    n_record_v: 20,
     # Type of background input. Possible values: 'poisson' and 'DC'
     # If 'DC' is chosen, a constant external current is provided, equal to the mean
     # current due to the Poisson input used in the default version of the model.
-    input_type: poisson, 
+    input_type: poisson,
     # random number generator seed for NEST Poisson generators
-    master_seed: 124678, 
+    master_seed: 124678,
     # Whether to make random numbers independent of the number of processes
     parallel_safe: true,
     # random number generator seeds for V and connectivity.
     # When parallel_safe is True, only the first is used.
     # When parallel_safe is False, the first num_processes are used.
-    pyseed: 2563297, 
+    pyseed: 2563297,
     # Whether to record correlations
-    record_corr: false, 
+    record_corr: false,
     # Whether to save connections to file.
     # Even if save_connections is set to True, at the moment connections are not
     # saved because the output exceeds the user's default capacity on the Collaboratory.
@@ -53,11 +53,13 @@ simulator_params:
 # Parameters for plots of spiking activity
 plot_spiking_activity: true
 # Fraction of recorded neurons to include in raster plot
-frac_to_plot: 1.
+frac_to_plot: 0.5
 # Excitatory and inhibitory population
 pops: {E: 0, I: 1}
 # raster_t_min and raster_t_max include the time scaling factor
-raster_t_max: 1000.0
+# if raster_t_max == 'sim_duration': plot for the whole duration of the simulation
+# else: enter float
+raster_t_max: sim_duration
 raster_t_min: 0.0
 # In-degrees for external inputs
 K_ext:
