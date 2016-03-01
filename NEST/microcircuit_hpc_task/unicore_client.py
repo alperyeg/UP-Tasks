@@ -146,6 +146,9 @@ def get_file_content(file_url, headers, check_size_limit=True, MAX_SIZE=2048000)
     else:
         return r.content
 
+def list_files(dir_url, auth, path="/"):
+    return get_properties(dir_url+"/files"+path, auth)['children']
+
 def get_oidc_auth(token=None):
     """ returns HTTP headers containing OIDC bearer token """
     return {'Authorization': "Bearer %s" % token}
