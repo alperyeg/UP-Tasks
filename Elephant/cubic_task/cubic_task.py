@@ -40,12 +40,7 @@ def cubic_task(h5_file, binsize, alpha):
     """
     h5_path = cubic_task.task.uri.get_file(h5_file)
     ion = neo.io.NeoHdf5IO(filename=h5_path)
-    number_of_spike_trains = ion.get_info()['SpikeTrain']
-
-    spiketrains = []
-
-    for k in range(number_of_spike_trains):
-        spiketrains.append(ion.get("/" + "SpikeTrain_" + str(k)))
+    spiketrains = ion.read_block().list_children_by_class(neo.SpikeTrain)
 
     ion.close()
 

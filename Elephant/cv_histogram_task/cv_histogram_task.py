@@ -4,6 +4,7 @@ __author__ = "Long Phan. INM-6, FZJ"
 import numpy as np
 import elephant as el
 import matplotlib
+import neo
 matplotlib.use('Agg')
 import matplotlib.pyplot as plt
 from neo import io
@@ -36,15 +37,13 @@ def cv_histogram_task(input_data):
 
     # open file from path using Neo
     ion = io.NeoHdf5IO(filename=original_path)
-    number_of_SpikeTrains = ion.get_info()['SpikeTrain']
+    spiketrains = ion.read_block().list_children_by_class(neo.SpikeTrain)
 
     # Init result
     res = []
 
     # Query data from hdf5-file
-    for k in range(number_of_SpikeTrains):
-        poisson_data = ion.get("/"+"SpikeTrain_"+str(k))
-
+    for poisson_data in spiketrains:
         if poisson_data.size > 0:
             # Calculate value for cv
             cv_data = el.statistics.isi(poisson_data)
