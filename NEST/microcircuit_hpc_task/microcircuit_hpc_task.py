@@ -8,12 +8,13 @@ import unicore_client
 
 
 @task
-def microcircuit_task(configuration_file,
-                      simulation_duration,
-                      thalamic_input,
-                      threads,
-                      nodes,
-                      use_hpc):
+def microcircuit_hpc_task(configuration_file,
+                          simulation_duration,
+                          thalamic_input,
+                          threads,
+                          use_hpc,
+                          nodes,
+                          hpc_url):
     '''
         Task Manifest Version: 1
         Full Name: microcircuit_task
@@ -52,20 +53,27 @@ def microcircuit_task(configuration_file,
             threads:
                 type: long
                 description: Number of threads NEST uses [default=1].
-            nodes:
-                type: long
-                description: Number of compute nodes [default=1].
             use_hpc:
                 type: bool
-                description: If True, the simulation will be run on the
-                    Juelich Supercomputer JUQUEEN on at least 32 compute nodes
-                    via UNICORE [default=False].
+                description: If True, the simulation will be run on an
+                    HPC resource via UNICORE [default=False].
+            nodes:
+                type: long
+                description: Number of compute nodes if use_hpc == True.
+                    The default of 32 corresponds to a small batch job on
+                    JUQUEEN [default=32].
+            hpc_url:
+                type: string
+                description: URL of HPC resource if use_hpc == True.
+                    The default URL corresponds to the Juelich Supercomputer
+                    JUQUEEN
+                    [default=https://hbp-unic.fz-juelich.de:7112/HBP_JUQUEEN/rest/core].
         Returns:
             res: application/vnd.juelich.bundle.nest.data
     '''
 
     # load config file provided by user
-    user_cfile = microcircuit_task.task.uri.get_file(configuration_file)
+    user_cfile = microcircuit_hpc_task.task.uri.get_file(configuration_file)
     with open(user_cfile, 'r') as f:
         user_conf = yaml.load(f)
 
@@ -88,7 +96,7 @@ def microcircuit_task(configuration_file,
 
     # create bundle & export bundle, mime type for nest simulation output
     my_bundle_mimetype = "application/vnd.juelich.bundle.nest.data"
-    bundle = microcircuit_task.task.uri.build_bundle(my_bundle_mimetype)
+    bundle = microcircuit_hpc_task.task.uri.build_bundle(my_bundle_mimetype)
 
     # submit the job 
     if use_hpc:
@@ -234,11 +242,13 @@ if __name__ == '__main__':
     simulation_duration = 1000.
     thalamic_input = False
     threads = 4
-    nodes = 1
     use_hpc = False
+    nodes = 1
+    hpc_url = 'https://hbp-unic.fz-juelich.de:7112/HBP_JUQUEEN/rest/core'
     filename = tt.URI(
         'application/vnd.juelich.simulation.config', configuration_file)
-    result = microcircuit_task(
-        filename, simulation_duration, thalamic_input, threads, nodes, use_hpc)
+    result = microcircuit_hpc_task(
+        filename, simulation_duration, thalamic_input,
+        threads, use_hpc, nodes, hpc_url)
     print('returned by task:')
     print(result)
