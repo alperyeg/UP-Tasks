@@ -111,16 +111,18 @@ def microcircuit_task(configuration_file,
     return bundle.save(my_bundle_name)
 
 
+def get_auth():
+     """ Auth header for REST calls """
+    oauth_token = microcircuit_task.task.uri.get_oauth_token()
+    return unicore_client.get_oidc_auth(oauth_token)
+
 def _run_microcircuit(hpc_url, nodes, conf):
     """ outsources simulation to HPC via UNICORE 
-        config file is uploaded
-        TODO upload python code too
-        TODO 'nodes' parameter shall be passed to juqueen
+        config file and python code is uploaded
     """
 
-    # Auth header for REST calls - this will only work ion the collab
-    oauth_token = microcircuit_task.task.uri.get_oauth_token()
-    auth = unicore_client.get_oidc_auth(oauth_token)
+    # Auth header for REST calls
+    auth = get_auth()
 
     # setup UNICORE job
     job = {}
@@ -134,7 +136,7 @@ def _run_microcircuit(hpc_url, nodes, conf):
     #job['Arguments']= [ "arg1", "arg2", "arg3" ]
 
     # TODO resource requests - nodes, runtime etc
-    #job['Resources'] = { 'Nodes': '32' }
+    job['Resources'] = { 'Nodes': str(nodes) }
     
     # files to upload : yaml config, microcircuit code, helper files
     config = {'To': 'config.yaml', 'Data': yaml.dump(conf) }
@@ -157,12 +159,19 @@ def _run_microcircuit(hpc_url, nodes, conf):
     # wait for finish (ie. success or fail) - this can take a while!
     unicore_client.wait_for_completion(job_url, auth)
 
+    # refresh the token
+    auth = get_auth()
+
     # list of tuples for all output files that shall be returned in a bundle:
     # (file name, file type)
     bundle_files = []
     # go through all created output files and assign file types
-    filenames  = conf['system_params']['output_path'] + '*'
-    for f in glob.glob(filenames):
+              
+    workdir = unicore_client.get_working_dir(job_url, auth)
+    filenames = unicore_client.list_files(workdir, auth, "/output")
+    
+    for file_path in filenames:
+        _, f = os.path.split(f)
         fname, extension = os.path.splitext(f)
         if extension == '.gdf':
             filetype = 'application/vnd.juelich.nest.spike_times'
@@ -177,6 +186,10 @@ def _run_microcircuit(hpc_url, nodes, conf):
             filetype = 'text/plain'
         else:
             filetype = 'application/unknown'
+        # download data from HPC to local storage
+        content = unicore_client.get_file_content(workdir+"/files"+f,auth)
+        with open(f,"w") as local_file:
+              local_file.write(content)
         res = (f, filetype)
         bundle_files.append(res)
 
