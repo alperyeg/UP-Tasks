@@ -110,10 +110,17 @@ class Network:
         for layer in sorted(layers):
             V_dist[layer] = {}
             for pop in sorted(pops):
-                V_dist[layer][pop] = RandomDistribution('normal',
-                                                        mu=V0_mean[layer][pop],
-                                                        sigma= V0_sd[layer][pop],
-                                                        rng=script_rng)
+                try: # pyNN 0.8.0
+                    V_dist[layer][pop] = RandomDistribution('normal',
+                                                            mu=V0_mean[layer][pop],
+                                                            sigma= V0_sd[layer][pop],
+                                                            rng=script_rng)
+                except TypeError: # pyNN 0.7.5
+                    V_dist[layer][pop] = RandomDistribution('normal',
+                                                            [V0_mean[layer][pop],
+                                                             V0_sd[layer][pop]],
+                                                            rng=script_rng)
+
 
         model = getattr(sim, neuron_model)
 
@@ -137,15 +144,15 @@ class Network:
             print('V0_mean: ')
             for layer in layers:
                 for pop in pops:
-                    print(layer, pop, V0_mean[layer][pop])
+                    print(layer + pop + ': ' + str(V0_mean[layer][pop]))
             print('n_rec:')
             for layer in sorted(layers):
                 for pop in sorted(pops):
-                    print(layer, pop, n_rec[layer][pop])
+                    print(layer + pop + ': ' + str(n_rec[layer][pop]))
                     if not record_fraction and n_record > \
                        int(round(N_full[layer][pop] * N_scaling)):
                         print('Note that requested number of neurons to record')
-                        print('exceeds ', layer, pop, ' population size')
+                        print('exceeds ' + layer + pop + ' population size')
 
         # Create cortical populations
         self.pops = {}
@@ -168,12 +175,18 @@ class Network:
                 # Provide DC input in the current-based case
                 # DC input is assumed to be absent in the conductance-based
                 # case
-                this_pop.set(i_offset = self.DC_amp[layer][pop])
+                try: # pyNN 0.8.0
+                    this_pop.set(i_offset = self.DC_amp[layer][pop])
+                except TypeError: # pyNN 0.7.5
+                    this_pop.set('i_offset', self.DC_amp[layer][pop])
 
                 self.base_neuron_ids[this_pop] = global_neuron_id
                 global_neuron_id += len(this_pop) + 2
 
-                this_pop.initialize(v = V_dist[layer][pop])
+                try: # pyNN 0.8.0
+                    this_pop.initialize(v = V_dist[layer][pop])
+                except TypeError: # pyNN 0.7.5
+                    this_pop.initialize('v', V_dist[layer][pop])
 
                 # Spike recording
                 sd = sim.nest.Create('spike_detector',
@@ -240,8 +253,8 @@ class Network:
                         # population, since the native NEST implementation sends
                         # independent spike trains to all targets
                         if sim.rank() == 0:
-                            print('Connecting Poisson generator to',
-                                  target_layer, target_pop)
+                            print('Connecting Poisson generator to ' +
+                                  target_layer + target_pop)
 
                         pg = sim.nest.Create(
                             'poisson_generator', params={'rate': rate})
@@ -256,8 +269,8 @@ class Network:
 
                 if thalamic_input:
                     if sim.rank() == 0:
-                        print('Creating thalamic connections to ', target_layer,
-                              target_pop)
+                        print('Creating thalamic connections to ' + \
+                              target_layer + target_pop)
                     C_thal = thal_params['C'][target_layer][target_pop]
                     n_target = N_full[target_layer][target_pop]
                     K_thal = round(np.log(1 - C_thal) / \
@@ -291,7 +304,7 @@ class Network:
                         possible_targets_curr[int((np.sign(weight) + 1) / 2)]
 
                         if sim.rank() == 0:
-                            print('Creating connections from ', source_layer + \
+                            print('Creating connections from ' + source_layer + \
                                 source_pop + ' to ' + target_layer + target_pop)
 
                         if source_pop == 'E' and source_layer == 'L4' and \
