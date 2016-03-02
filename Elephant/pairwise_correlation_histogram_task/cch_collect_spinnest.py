@@ -9,10 +9,10 @@ some additional info).
 # =============================================================================
 
 # paths
-import sys
 import os
 import glob
 import pickle
+import json
 
 import numpy as np
 import quantities as pq
@@ -25,20 +25,18 @@ import elephant
 
 import h5py_wrapper.wrapper
 
-# to find our "special" elephant
-sys.path.insert(1, '..')
-
 
 def cch_measure(cch_all_pairs, times):
     ind = np.argmin(np.abs(times))
     return np.sum(cch_all_pairs[ind - 5:ind + 5])
 
-
+with open('data_paths.json') as f:
+    data_paths_dict = json.load(f)
 # =============================================================================
 # Load spinnaker data
 # =============================================================================
 
-filename = '../../data/Spinnaker_Data/results/spikes_L5E.h5'
+filename = data_paths_dict['spinnaker_data']
 session = neo.NeoHdf5IO(filename=filename)
 block = session.read_block()
 sts_spinnaker = block.list_children_by_class(neo.SpikeTrain)[:100]
@@ -53,14 +51,10 @@ num_neurons = len(sts_spinnaker)
 # Load nest data
 # =============================================================================
 
-filename = '../../data/Nest_Data/collected_spikes_L4E-77177.h5'
+filename = data_paths_dict['nest_data']
 session = neo.NeoHdf5IO(filename=filename)
 
-sts_nest = []
-
-for k in range(100):
-    sts_nest.append(session.get("/" + "SpikeTrain_" + str(k)))
-
+sts_nest = session.read_block().list_children_by_class(neo.SpikeTrain)
 print("Number of nest spike trains: " + str(len(sts_nest)))
 
 # create binned spike trains
@@ -149,10 +143,10 @@ for dta, sts in zip(['spinnaker', 'nest'], [sts_spinnaker, sts_nest]):
 
 # values per edge
 num_tasks = len(glob.glob(
-    '../../results/release_demo/correlation_output_*.h5'))
+    './results/release_demo/correlation_output_*.h5'))
 for job_parameter in range(num_tasks):
     filename = \
-        '../../results/release_demo/correlation_output_' + \
+        './results/release_demo/correlation_output_' + \
         str(job_parameter) + '.h5'
     if not os.path.exists(filename):
         raise IOError('Cannot find file %s.', filename)
@@ -201,30 +195,37 @@ for job_parameter in range(num_tasks):
     del cc_part
 
 # write parameters to disk
-filename = '../../results/release_demo/viz_output_spinnaker.h5'
+filename = './results/viz_output_spinnaker.h5'
 if os.path.exists(filename):
     os.remove(filename)
 h5py_wrapper.wrapper.add_to_h5(
     filename,
     cc['spinnaker'], write_mode='w', overwrite_dataset=True)
 
-filename = '../../results/release_demo/viz_output_spinnaker.pkl'
+filename = './results/viz_output_spinnaker.pkl'
 if os.path.exists(filename):
     os.remove(filename)
 f = open(filename, 'w')
 pickle.dump(cc['spinnaker'], f)
 f.close()
 
-filename = '../../results/release_demo/viz_output_nest.h5'
+filename = './results/viz_output_nest.h5'
 if os.path.exists(filename):
     os.remove(filename)
 h5py_wrapper.wrapper.add_to_h5(
     filename,
     cc['nest'], write_mode='w', overwrite_dataset=True)
 
-filename = '../../results/release_demo/viz_output_nest.pkl'
+filename = './results/viz_output_nest.pkl'
 if os.path.exists(filename):
     os.remove(filename)
 f = open(filename, 'w')
 pickle.dump(cc['nest'], f)
 f.close()
+
+# Remove folder with all intermediate h5 files
+import shutil
+shutil.rmtree('./results/release_demo')
+# Remove json file
+if os.path.exists('data_paths.json'):
+    os.remove('data_paths.json')

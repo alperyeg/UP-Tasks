@@ -1,5 +1,5 @@
 """
-This is a local version of the UP task to calculate all pairwise CCHs and their
+This is a local version of the Collab task to calculate all pairwise CCHs and their
 significance based on 1000 spike dither surrogates on the SLURM based cluster.
 """
 
@@ -9,24 +9,26 @@ significance based on 1000 spike dither surrogates on the SLURM based cluster.
 
 # get job parameter
 import os
-import sys
 import numpy as np
 import quantities as pq
 # provides neo framework and I/Os to load exp and mdl data
 import neo
+import json
 
 # provides core analysis library component
 import elephant
 import elephant.spike_train_correlation as stc
 import elephant.conversion as conv
 
-try:
-    job_parameter = int(os.environ['SLURM_ARRAY_TASK_ID'])
-except KeyError:
-    job_parameter = 0
+job_parameter = int(os.environ['SLURM_ARRAY_TASK_ID'])
+filename_spinnaker = os.environ['spinnaker_data']
+filename_nest = os.environ['nest_data']
 
-# to find our "special" elephant
-sys.path.insert(1, '..')
+json_file = 'data_paths.json'
+if not os.path.exists(json_file):
+    with open(json_file, 'w') as outfile:
+        json.dump({'spinnaker_data': filename_spinnaker,
+                   'nest_data': filename_nest}, outfile)
 
 # this number relates to the "-t" parameter:
 #   -t 0-X => num_tasks=X+1
@@ -47,20 +49,21 @@ rec_start = 10. * pq.s
 duration = 50. * pq.s
 
 # =============================================================================
-# Load experimental data
+# Load spinnaker  data
 # =============================================================================
 
-filename = '../../data/Spinnaker_Data/results/spikes_L5E.h5'
+filename = filename_spinnaker
 session = neo.NeoHdf5IO(filename=filename)
 block = session.read_block()
 sts_spinnaker = block.list_children_by_class(neo.SpikeTrain)[:100]
 print("Number of spinnaker spike trains: " + str(len(sts_spinnaker)))
 
 # =============================================================================
-# Load simulation data
+# Load nest data
 # =============================================================================
 
-filename = '../../data/Nest_Data/example_output_10500ms_nrec_100/spikes_L5E.h5'
+filename = filename_nest
+
 session = neo.NeoHdf5IO(filename=filename)
 
 block = session.read_block()
@@ -156,7 +159,7 @@ for dta, sts in zip(['spinnaker', 'nest'], [sts_spinnaker, sts_nest]):
 # write parameters to disk
 import h5py_wrapper.wrapper
 
-filename = '../../results/release_demo/correlation_output_'
+filename = './results/release_demo/correlation_output_'
 if os.path.exists(filename):
     os.remove(filename)
 h5py_wrapper.wrapper.add_to_h5(
