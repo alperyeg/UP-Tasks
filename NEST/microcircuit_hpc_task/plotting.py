@@ -10,10 +10,16 @@ def plot_raster_bars(n_rec, network_pops, conf):
     pops = conf['pops']
     n_layers = conf['n_layers']
     n_pops_per_layer = conf['n_pops_per_layer']
-    raster_t_min = conf['raster_t_min']
+    t_start = conf['raster_t_min']
     raster_t_max = conf['raster_t_max']
     frac_to_plot = conf['frac_to_plot']
     output_path = conf['system_params']['output_path']
+    sim_duration = conf['simulator_params']['nest']['sim_duration']
+
+    if raster_t_max == 'sim_duration' or raster_t_max > sim_duration:
+        t_stop = sim_duration
+    else:
+        t_stop = raster_t_max
 
     # dictionary of spike arrays, one entry for each population
     spikes = {}
@@ -58,15 +64,15 @@ def plot_raster_bars(n_rec, network_pops, conf):
             t_spikes = spikes[layer][pop][:, 0]
             ids = spikes[layer][pop][:, 1] + (id_count + 1)
             filtered_times_indices = [
-                np.where((t_spikes > raster_t_min) & (t_spikes < raster_t_max))][0]
+                np.where((t_spikes > t_start) & (t_spikes < t_stop))][0]
             t_spikes = t_spikes[filtered_times_indices]
             ids = ids[filtered_times_indices]
 
             # Compute rates with all neurons
             rate = 1000 * \
-                len(t_spikes) / (raster_t_max - raster_t_min) / n_rec[layer][pop]
+                len(t_spikes) / (t_stop - t_start) / n_rec[layer][pop]
             rates[layer][pop] = rate
-            print(layer, pop, np.round(rate, 2))
+            print(layer +  pop +': ' + ' {:.2f}'.format(rate))
             # Reduce data for raster plot
             num_neurons = frac_to_plot * n_rec[layer][pop]
             t_spikes = t_spikes[np.where(ids < num_neurons + id_count + 1)[0]]
