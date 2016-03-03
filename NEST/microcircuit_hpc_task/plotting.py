@@ -72,7 +72,7 @@ def plot_raster_bars(n_rec, network_pops, conf):
             rate = 1000 * \
                 len(t_spikes) / (t_stop - t_start) / n_rec[layer][pop]
             rates[layer][pop] = rate
-            print(layer +  pop +': ' + ' {:.2f}'.format(rate))
+            print(layer +  pop +': ' + str(np.round(rate, 2)))
             # Reduce data for raster plot
             num_neurons = frac_to_plot * n_rec[layer][pop]
             t_spikes = t_spikes[np.where(ids < num_neurons + id_count + 1)[0]]
