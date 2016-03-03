@@ -17,7 +17,7 @@ def microcircuit_hpc_task(configuration_file,
                           hpc_url):
     '''
         Task Manifest Version: 1
-        Full Name: microcircuit_task
+        Full Name: microcircuit_hpc_task
         Caption: Cortical microcircuit simulation
         Author: NEST Developers
         Description: |
@@ -52,15 +52,16 @@ def microcircuit_hpc_task(configuration_file,
                     the network [default=False].
             threads:
                 type: long
-                description: Number of threads NEST uses [default=1].
+                description: Number of threads NEST uses [default=8].
             use_hpc:
                 type: bool
                 description: If True, the simulation will be run on an
-                    HPC resource via UNICORE [default=False].
+                    HPC resource via UNICORE. If False, use 8 threads and
+                    request 15360 MB of memory [default=False].
             nodes:
                 type: long
                 description: Number of compute nodes if use_hpc == True.
-                    The default of 32 corresponds to a small batch job on
+                    The default corresponds to a small batch job on
                     JUQUEEN [default=32].
             hpc_url:
                 type: string
@@ -131,7 +132,7 @@ def load_local_file(name):
 
 def get_auth():
     """ Auth header for REST calls """
-    oauth_token = microcircuit_task.task.uri.get_oauth_token()
+    oauth_token = microcircuit_hpc_task.task.uri.get_oauth_token()
     return unicore_client.get_oidc_auth(oauth_token)
 
 def assign_file_types(filename):
