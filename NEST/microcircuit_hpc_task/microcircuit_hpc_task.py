@@ -1,23 +1,20 @@
 #!/usr/bin/env python
 import os
 import yaml
+import glob
 from active_worker.task import task
 from task_types import TaskTypes as tt
 import unicore_client
 
-def load_local_file(name):
-    """ loads local file and returns contents as string """
-    file_path = os.path.join(os.path.dirname(__file__), name)
-    with open(file_path) as f:
-        return f.read()
-    
 
 @task
-def microcircuit_task(configuration_file,
-                      simulation_duration,
-                      thalamic_input,
-                      threads,
-                      nodes):
+def microcircuit_hpc_task(configuration_file,
+                          simulation_duration,
+                          thalamic_input,
+                          threads,
+                          use_hpc,
+                          nodes,
+                          hpc_url):
     '''
         Task Manifest Version: 1
         Full Name: microcircuit_task
@@ -38,8 +35,6 @@ def microcircuit_task(configuration_file,
             After uploading the YAML file, its content type needs to be changed
             to 'application/vnd.juelich.simulation.config'. Parameters defined
             in the WUI overwrite values defined in the configuration file.
-            The simulation is run on a HPC machine (currently JUQUEEN) via
-            UNICORE.
         Categories:
             - NEST
         Compatible_queues: ['cscs_viz', 'cscs_bgq', 'epfl_viz']
@@ -58,14 +53,27 @@ def microcircuit_task(configuration_file,
             threads:
                 type: long
                 description: Number of threads NEST uses [default=1].
+            use_hpc:
+                type: bool
+                description: If True, the simulation will be run on an
+                    HPC resource via UNICORE [default=False].
             nodes:
                 type: long
-                description: Number of compute nodes [default=32].
+                description: Number of compute nodes if use_hpc == True.
+                    The default of 32 corresponds to a small batch job on
+                    JUQUEEN [default=32].
+            hpc_url:
+                type: string
+                description: URL of HPC resource if use_hpc == True.
+                    The default URL corresponds to the Juelich Supercomputer
+                    JUQUEEN
+                    [default=https://hbp-unic.fz-juelich.de:7112/HBP_JUQUEEN/rest/core].
         Returns:
             res: application/vnd.juelich.bundle.nest.data
     '''
+
     # load config file provided by user
-    user_cfile = microcircuit_task.task.uri.get_file(configuration_file)
+    user_cfile = microcircuit_hpc_task.task.uri.get_file(configuration_file)
     with open(user_cfile, 'r') as f:
         user_conf = yaml.load(f)
 
@@ -88,18 +96,22 @@ def microcircuit_task(configuration_file,
 
     # create bundle & export bundle, mime type for nest simulation output
     my_bundle_mimetype = "application/vnd.juelich.bundle.nest.data"
-    bundle = microcircuit_task.task.uri.build_bundle(my_bundle_mimetype)
+    bundle = microcircuit_hpc_task.task.uri.build_bundle(my_bundle_mimetype)
 
-    if not hpc_url.startswith("https://"):
-        # lookup the correct base URL
-        hpc_url = unicore_client.get_site(hpc_url)
-    if hpc_url is None:
-        raise RuntimeError("No valid HPC site")
+    # submit the job 
+    if use_hpc:
+        if not hpc_url.startswith("https://"):
+            # lookup the correct base URL
+            hpc_url = unicore_client.get_site(hpc_url)
+        if hpc_url is None:
+            raise RuntimeError("No valid HPC site")
+        bundle_files = _run_microcircuit_hpc(hpc_url, nodes, conf)
+    else:
+        bundle_files = _run_microcircuit_loc(conf)
 
-    results = _run_microcircuit(hpc_url, nodes, conf)
 
-    bundle_files = _run_microcircuit(conf)
-    print('files in bundle: \n', bundle_files)
+    print('files in bundle:')
+    print(bundle_files)
 
     for file_name, file_mimetype in bundle_files:
         bundle.add_file(src_path=file_name,
@@ -111,16 +123,43 @@ def microcircuit_task(configuration_file,
     return bundle.save(my_bundle_name)
 
 
-def _run_microcircuit(hpc_url, nodes, conf):
+def load_local_file(name):
+    """ loads local file and returns contents as string """
+    file_path = os.path.join(os.path.dirname(__file__), name)
+    with open(file_path) as f:
+        return f.read()
+
+def get_auth():
+    """ Auth header for REST calls """
+    oauth_token = microcircuit_task.task.uri.get_oauth_token()
+    return unicore_client.get_oidc_auth(oauth_token)
+
+def assign_file_types(filename):
+    """ assign file types based on file name and extension """
+    fname, extension = os.path.splitext(filename)
+    if extension == '.gdf':
+        filetype = 'application/vnd.juelich.nest.spike_times'
+    elif extension == '.png':
+        filetype = 'image/png'
+    elif extension == '.dat':
+        if 'voltages' in fname:
+            filetype = 'application/vnd.juelich.nest.analogue_signal'
+        elif 'covariances' in fname:
+            filetype = 'text/plain'
+    elif extension == '.yaml':
+        filetype = 'text/plain'
+    else:
+        filetype = 'application/unknown'
+    return filetype
+
+
+def _run_microcircuit_hpc(hpc_url, nodes, conf):
     """ outsources simulation to HPC via UNICORE 
-        config file is uploaded
-        TODO upload python code too
-        TODO 'nodes' parameter shall be passed to juqueen
+        config file and python code is uploaded
     """
 
-    # Auth header for REST calls - this will only work ion the collab
-    oauth_token = microcircuit_task.task.uri.get_oauth_token()
-    auth = unicore_client.get_oidc_auth(oauth_token)
+    # Auth header for REST calls
+    auth = get_auth()
 
     # setup UNICORE job
     job = {}
@@ -134,11 +173,11 @@ def _run_microcircuit(hpc_url, nodes, conf):
     #job['Arguments']= [ "arg1", "arg2", "arg3" ]
 
     # TODO resource requests - nodes, runtime etc
-    #job['Resources'] = { 'Nodes': '32' }
+    job['Resources'] = { 'Nodes': str(nodes) }
     
     # files to upload : yaml config, microcircuit code, helper files
     config = {'To': 'config.yaml', 'Data': yaml.dump(conf) }
-    code   = {'To': 'microcircuit.py', 'Data': load_local_file('microcircuit.py' }
+    code   = {'To': 'microcircuit.py', 'Data': load_local_file('microcircuit.py')}
     connectivity = {'To': 'connectivity.py',
                 'Data': load_local_file('connectivity.py')}
     network = {'To': 'network.py', 
@@ -157,26 +196,41 @@ def _run_microcircuit(hpc_url, nodes, conf):
     # wait for finish (ie. success or fail) - this can take a while!
     unicore_client.wait_for_completion(job_url, auth)
 
+    # refresh the token
+    auth = get_auth()
+
     # list of tuples for all output files that shall be returned in a bundle:
+    # (file name, file type)
+    bundle_files = []
+    # go through all created output files and assign file types
+              
+    workdir = unicore_client.get_working_dir(job_url, auth)
+    filenames = unicore_client.list_files(workdir, auth, "/output")
+    
+    for file_path in filenames:
+        _, f = os.path.split(f)
+        filetype = assign_file_types(f)
+        # download data from HPC to local storage
+        content = unicore_client.get_file_content(workdir+"/files"+f,auth)
+        with open(f,"w") as local_file:
+              local_file.write(content)
+        res = (f, filetype)
+        bundle_files.append(res)
+
+    return bundle_files
+
+
+def _run_microcircuit_loc(conf):
+    """ run simulation locally with the given parameters"""
+    import microcircuit
+    microcircuit.run_microcircuit(conf)
+   # list of tuples for all output files that shall be returned in a bundle:
     # (file name, file type)
     bundle_files = []
     # go through all created output files and assign file types
     filenames  = conf['system_params']['output_path'] + '*'
     for f in glob.glob(filenames):
-        fname, extension = os.path.splitext(f)
-        if extension == '.gdf':
-            filetype = 'application/vnd.juelich.nest.spike_times'
-        elif extension == '.png':
-            filetype = 'image/png'
-        elif extension == '.dat':
-            if 'voltages' in fname:
-                filetype = 'application/vnd.juelich.nest.analogue_signal'
-            elif 'covariances' in fname:
-                filetype = 'text/plain'
-        elif extension == '.yaml':
-            filetype = 'text/plain'
-        else:
-            filetype = 'application/unknown'
+        filetype = assign_file_types(f)
         res = (f, filetype)
         bundle_files.append(res)
 
@@ -188,9 +242,13 @@ if __name__ == '__main__':
     simulation_duration = 1000.
     thalamic_input = False
     threads = 4
-    nodes = 32
+    use_hpc = False
+    nodes = 1
+    hpc_url = 'https://hbp-unic.fz-juelich.de:7112/HBP_JUQUEEN/rest/core'
     filename = tt.URI(
         'application/vnd.juelich.simulation.config', configuration_file)
     result = microcircuit_hpc_task(
-        filename, simulation_duration, thalamic_input, threads, nodes)
-    print result
+        filename, simulation_duration, thalamic_input,
+        threads, use_hpc, nodes, hpc_url)
+    print('returned by task:')
+    print(result)
