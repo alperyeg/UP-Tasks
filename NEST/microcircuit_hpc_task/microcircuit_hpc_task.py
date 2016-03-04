@@ -149,7 +149,7 @@ def assign_file_types(filename):
         elif 'covariances' in fname:
             filetype = 'text/plain'
     elif extension == '.yaml':
-        filetype = 'text/plain'
+        filetype = 'application/vnd.juelich.simulation.config'
     else:
         filetype = 'application/unknown'
     return filetype
@@ -210,7 +210,7 @@ def _run_microcircuit_hpc(hpc_url, nodes, conf):
     filenames = unicore_client.list_files(workdir, auth, "/output")
     
     for file_path in filenames:
-        _, f = os.path.split(f)
+        _, f = os.path.split(file_path)
         filetype = assign_file_types(f)
         # download data from HPC to local storage
         content = unicore_client.get_file_content(workdir+"/files"+f,auth)
