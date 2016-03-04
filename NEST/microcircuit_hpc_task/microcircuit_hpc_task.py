@@ -195,7 +195,7 @@ def _run_microcircuit_hpc(hpc_url, nodes, conf):
     job_url = unicore_client.submit(hpc_url + '/jobs', job, auth, inputs)
 
     # wait for finish (ie. success or fail) - this can take a while!
-    unicore_client.wait_for_completion(job_url, auth)
+    unicore_client.wait_for_completion(job_url, auth, refresh_function = microcircuit_hpc_task.task.uri.get_oauth_token)
 
     # refresh the token
     auth = get_auth()
