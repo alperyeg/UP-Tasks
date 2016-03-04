@@ -116,10 +116,23 @@ def is_running(job, headers={}):
     return ("SUCCESSFUL"!=status) and ("FAILED"!=status)
 
 
-def wait_for_completion(job, headers={}):
-    """ wait until job is done """
+def wait_for_completion(job, headers={}, refresh_function=None, refresh_interval=360):
+    """ wait until job is done 
+        if refresh_function is not none, it will be called to refresh
+        the "Authorization" header
+        refresh_interval is in seconds
+    """
+    sleep_interval = 10
+    do_refresh = refresh_function is not None
+    # refresh every N iterations
+    refresh = int(1 + refresh_interval / sleep_interval)
+    count = 0;
     while is_running(job, headers):
-        time.sleep(3)
+        time.sleep(sleep_interval)
+        count += 1
+        if do_refresh and count == refresh:
+            headers['Authorization'] = refresh_function()
+            count=0
 
 
 def file_exists(wd, name, headers):
@@ -151,4 +164,4 @@ def list_files(dir_url, auth, path="/"):
 
 def get_oidc_auth(token=None):
     """ returns HTTP headers containing OIDC bearer token """
-    return {'Authorization': "Bearer %s" % token}
+    return {'Authorization': token}
