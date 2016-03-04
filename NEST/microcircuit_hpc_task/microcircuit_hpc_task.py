@@ -114,10 +114,11 @@ def microcircuit_hpc_task(configuration_file,
     print('files in bundle:')
     print(bundle_files)
 
-    for file_name, file_mimetype in bundle_files:
-        bundle.add_file(src_path=file_name,
-                        dst_path=file_name,
-                        bundle_path=file_name,
+    for file_fullpath, file_mimetype in bundle_files:
+        filename = os.path.basename(file_fullpath)
+        bundle.add_file(src_path=file_fullpath,
+                        dst_path=os.path.join('contents', filename),
+                        bundle_path=filename,
                         mime_type=file_mimetype)
 
     my_bundle_name = 'microcircuit_model_bundle'
