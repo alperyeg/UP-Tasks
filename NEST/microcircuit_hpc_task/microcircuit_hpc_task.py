@@ -205,7 +205,7 @@ def _run_microcircuit_hpc(hpc_url, nodes, conf):
     bundle_files = []
     # go through all created output files and assign file types
               
-    workdir = unicore_client.get_working_dir(job_url, auth)
+    workdir = unicore_client.get_working_directory(job_url, auth)
     filenames = unicore_client.list_files(workdir, auth, "/output")
     
     for file_path in filenames:
