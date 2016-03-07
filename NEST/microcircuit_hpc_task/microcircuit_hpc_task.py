@@ -213,7 +213,7 @@ def _run_microcircuit_hpc(hpc_url, nodes, conf):
         _, f = os.path.split(file_path)
         filetype = assign_file_types(f)
         # download data from HPC to local storage
-        content = unicore_client.get_file_content(workdir+"/files"+f,auth)
+        content = unicore_client.get_file_content(workdir+"/files"+file_path,auth)
         with open(f,"w") as local_file:
               local_file.write(content)
         res = (f, filetype)
