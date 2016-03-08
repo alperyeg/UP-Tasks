@@ -32,7 +32,7 @@ if not os.path.exists(json_file):
 
 # this number relates to the "-t" parameter:
 #   -t 0-X => num_tasks=X+1
-num_tasks = 100
+num_tasks = int(os.environ.get('NUM_TASKS', '1'))
 
 
 def cch_measure(cch_all_pairs):
@@ -67,7 +67,7 @@ filename = filename_nest
 session = neo.NeoHdf5IO(filename=filename)
 
 block = session.read_block()
-sts_nest = block.list_childrin_by_class(neo.SpikeTrain)[:100]
+sts_nest = block.list_children_by_class(neo.SpikeTrain)[:100]
 # for k in range(100):
 #     sts_nest.append(session.get("/" + "SpikeTrain_" + str(k)))
 #
@@ -77,7 +77,7 @@ print("Number of nest spike trains: " + str(len(sts_nest)))
 
 
 # ## Cross-correlograms
-num_surrs = 1000
+num_surrs = int(os.environ.get('NUM_SURRS','1000'))
 max_lag_bins = 200
 lag_res = 1 * pq.ms
 max_lag = max_lag_bins * lag_res
@@ -159,7 +159,7 @@ for dta, sts in zip(['spinnaker', 'nest'], [sts_spinnaker, sts_nest]):
 # write parameters to disk
 import h5py_wrapper.wrapper
 
-filename = './results/release_demo/correlation_output_'
+filename = './results/correlation_output_'
 if os.path.exists(filename):
     os.remove(filename)
 h5py_wrapper.wrapper.add_to_h5(

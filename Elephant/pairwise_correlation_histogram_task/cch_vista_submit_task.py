@@ -55,16 +55,16 @@ def cch_vista_submit_task(inputdata_spinnaker, inputdata_nest, run_script,
     spinnaker_data_path = cch_vista_submit_task.task.uri.get_file(
         inputdata_spinnaker)
     nest_data_path = cch_vista_submit_task.task.uri.get_file(inputdata_nest)
-    submit_script_path = cch_vista_submit_task.task.uri.get_file(run_script)
+    run_script_path = cch_vista_submit_task.task.uri.get_file(run_script)
     collect_script_path = cch_vista_submit_task.task.uri.get_file(collect_script)
     # Load h5 wrapper
     h5_wrapper = 'wrapper.py'
     wrapper_path = os.path.join(os.path.dirname(__file__), h5_wrapper)
 
     # Preparing for unicore submission
-    code = {'To': '{}'.format(os.path.split(submit_script_path)[1]),
-            'Data': load_local_file('{}'.format(submit_script_path))}
-    collect_script = {'To': '{}'.format(os.path.split(collect_script_path)[1]),
+    code = {'To': 'input.py',
+            'Data': load_local_file('{}'.format(run_script_path))}
+    collect_script = {'To': 'collect.py',
                       'Data': load_local_file('{}'.format(collect_script_path)[1])}
     h5_script = {'To': '{}'.format(os.path.split(wrapper_path)[1]),
                  'Data': load_local_file('{}'.format(wrapper_path)[1])}
@@ -81,12 +81,15 @@ def cch_vista_submit_task(inputdata_spinnaker, inputdata_nest, run_script,
     # Unicore parameter
     job = dict()
     job['ApplicationName'] = 'Elephant'
-    job['Parameters'] = {'INPUT': submit_script_path}
-    job['Environment'] = {'spinnaker_data': os.path.split(spinnaker_data_path)[1],
-                          'nest_data': os.path.split(nest_data_path)[1]}
-    job['User postcommand'] = 'python {0} {1}'.format(
-        os.path.split(collect_script_path)[1], spinnaker_data)
-    job['RunUserPostCommandOnLoginNode'] = 'false'
+    job['Environment'] = {'INPUT': 'input.py',
+                          'spinnaker_data': os.path.split(spinnaker_data_path)[1],
+                          'nest_data': os.path.split(nest_data_path)[1],
+                          'NUM_TASKS': '4',
+    }
+    job['Resources']={'Nodes': '1', 'ArraySize': '4', }
+    job['Execution environment'] = {'Name': 'Elephant',
+                                    'PostCommands': ['COLLECT']
+    }
 
     # Submission
     base_url = unicore_client.get_sites()['JURECA']['url']
@@ -100,4 +103,4 @@ if __name__ == '__main__':
     inputdata_spinnaker = tt.URI('application/unknown', 'spikes_L5E.h5')
     inputdata_nest = tt.URI('application/unknown', 'spikes_L5E.h5')
     script = ''
-    cch_vista_submit_task(inputdata_spinnaker, inputdata_nest, script)
+    cch_vista_submit_task(inputdata_spinnaker, inputdata_nest, script, script)
