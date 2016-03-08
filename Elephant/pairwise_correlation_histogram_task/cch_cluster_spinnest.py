@@ -32,7 +32,7 @@ if not os.path.exists(json_file):
 
 # this number relates to the "-t" parameter:
 #   -t 0-X => num_tasks=X+1
-num_tasks = int(os.environ.get('NUM_TASKS', '1')
+num_tasks = int(os.environ.get('NUM_TASKS', '1'))
 
 
 def cch_measure(cch_all_pairs):
