@@ -67,7 +67,7 @@ filename = filename_nest
 session = neo.NeoHdf5IO(filename=filename)
 
 block = session.read_block()
-sts_nest = block.list_childrin_by_class(neo.SpikeTrain)[:100]
+sts_nest = block.list_children_by_class(neo.SpikeTrain)[:100]
 # for k in range(100):
 #     sts_nest.append(session.get("/" + "SpikeTrain_" + str(k)))
 #
