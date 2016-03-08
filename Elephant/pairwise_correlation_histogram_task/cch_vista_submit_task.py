@@ -19,7 +19,7 @@ def load_local_file(name):
 
 @task
 def cch_vista_submit_task(inputdata_spinnaker, inputdata_nest, run_script,
-                          collect_script):
+                          collect_script, num_tasks):
     '''
         Task Manifest Version: 1
         Full Name: cch_vista_submit_task
@@ -37,7 +37,7 @@ def cch_vista_submit_task(inputdata_spinnaker, inputdata_nest, run_script,
                 type: application/unknown
                 description: Input file that contains spiking data from a
                     HDF5 file generated from spinnaker simulation.
-            inputdata_spinnaker:
+            inputdata_nest:
                 type: application/unknown
                 description: Input file that contains spiking data from a
                     HDF5 file from nest simulation.
@@ -47,6 +47,9 @@ def cch_vista_submit_task(inputdata_spinnaker, inputdata_nest, run_script,
             collect_script:
                 type: application/unkown
                 description: Script which will be executed on an HPC.
+            num_tasks:
+                type: long
+                description: Number of tasks which will be run on the HPC.
 
         Returns:
             res: application/unknown
@@ -63,15 +66,16 @@ def cch_vista_submit_task(inputdata_spinnaker, inputdata_nest, run_script,
 
     # Preparing for unicore submission
     code = {'To': 'input.py',
-            'Data': load_local_file('{}'.format(run_script_path))}
+            'Data': load_local_file('{0}'.format(run_script_path))}
     collect_script = {'To': 'collect.py',
-                      'Data': load_local_file('{}'.format(collect_script_path)[1])}
-    h5_script = {'To': '{}'.format(os.path.split(wrapper_path)[1]),
-                 'Data': load_local_file('{}'.format(wrapper_path)[1])}
-    spinnaker_data = {'To': '{}'.format(os.path.split(spinnaker_data_path)[1]),
-                      'Data': load_local_file('{}'.format(spinnaker_data_path))[1]}
-    nest_data = {'To': '{}'.format(os.path.split(nest_data_path)[1]),
-                 'Data': load_local_file('{}'.format(nest_data_path))}
+                      'Data': load_local_file('{0}'.format(collect_script_path))}
+    h5_script = {'To': '{0}'.format(os.path.split(wrapper_path)[1]),
+                 'Data': load_local_file(
+                     '{0}'.format(os.path.split(wrapper_path))[1])}
+    spinnaker_data = {'To': '{0}'.format(os.path.split(spinnaker_data_path)[1]),
+                      'Data': load_local_file('{0}'.format(spinnaker_data_path))}
+    nest_data = {'To': '{0}'.format(os.path.split(nest_data_path)[1]),
+                 'Data': load_local_file('{0}'.format(nest_data_path))}
     inputs = [code, collect_script, h5_script, spinnaker_data, nest_data]
 
     # Get token
@@ -84,12 +88,11 @@ def cch_vista_submit_task(inputdata_spinnaker, inputdata_nest, run_script,
     job['Environment'] = {'INPUT': 'input.py',
                           'spinnaker_data': os.path.split(spinnaker_data_path)[1],
                           'nest_data': os.path.split(nest_data_path)[1],
-                          'NUM_TASKS': '4',
-    }
-    job['Resources']={'Nodes': '1', 'ArraySize': '4', }
+                          'NUM_TASKS': str(num_tasks),
+                          }
+    job['Resources'] = {'ArraySize': str(num_tasks)}
     job['Execution environment'] = {'Name': 'Elephant',
-                                    'PostCommands': ['COLLECT']
-    }
+                                    'PostCommands': ['COLLECT']}
 
     # Submission
     base_url = unicore_client.get_sites()['JURECA']['url']
