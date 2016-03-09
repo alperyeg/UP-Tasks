@@ -157,12 +157,16 @@ for dta, sts in zip(['spinnaker', 'nest'], [sts_spinnaker, sts_nest]):
         cc[dta]['pvalue'][calc_i] = np.count_nonzero(np.array(ccsm) >= ccom)
 
 # write parameters to disk
-import h5py_wrapper.wrapper
+import wrapper
 
 filename = './results/correlation_output_'
-if os.path.exists(filename):
-    os.remove(filename)
-h5py_wrapper.wrapper.add_to_h5(
+
+try:
+    os.mkdir("results")
+except OSError:
+        pass
+
+wrapper.add_to_h5(
     filename +
     str(job_parameter) + '.h5',
     cc, write_mode='w', overwrite_dataset=True)
