@@ -23,7 +23,7 @@ import neo
 # provides core analysis library component
 import elephant
 
-import h5py_wrapper.wrapper
+import wrapper
 
 
 def cch_measure(cch_all_pairs, times):
@@ -152,7 +152,7 @@ for job_parameter in range(num_tasks):
         raise IOError('Cannot find file %s.', filename)
     print("Assembly of : %s" % filename)
 
-    cc_part = h5py_wrapper.wrapper.load_h5(filename)
+    cc_part = wrapper.load_h5(filename)
 
     for dta, sts in zip(['spinnaker', 'nest'], [sts_spinnaker, sts_nest]):
         for calc_i in cc_part[dta]['pvalue']:
@@ -198,7 +198,7 @@ for job_parameter in range(num_tasks):
 filename = './results/viz_output_spinnaker.h5'
 if os.path.exists(filename):
     os.remove(filename)
-h5py_wrapper.wrapper.add_to_h5(
+wrapper.add_to_h5(
     filename,
     cc['spinnaker'], write_mode='w', overwrite_dataset=True)
 
@@ -212,7 +212,7 @@ f.close()
 filename = './results/viz_output_nest.h5'
 if os.path.exists(filename):
     os.remove(filename)
-h5py_wrapper.wrapper.add_to_h5(
+wrapper.add_to_h5(
     filename,
     cc['nest'], write_mode='w', overwrite_dataset=True)
 
