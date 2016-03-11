@@ -68,11 +68,12 @@ def cch_vista_submit_task(inputdata_spinnaker, inputdata_nest, run_script,
     code = {'To': 'input.py',
             'Data': load_local_file('{0}'.format(run_script_path))}
     collect_script = {'To': 'collect.py',
-                      'Data': load_local_file('{0}'.format(collect_script_path)[1])}
+                      'Data': load_local_file('{0}'.format(collect_script_path))}
     h5_script = {'To': '{0}'.format(os.path.split(wrapper_path)[1]),
-                 'Data': load_local_file('{0}'.format(wrapper_path)[1])}
+                 'Data': load_local_file(
+                     '{0}'.format(os.path.split(wrapper_path))[1])}
     spinnaker_data = {'To': '{0}'.format(os.path.split(spinnaker_data_path)[1]),
-                      'Data': load_local_file('{0}'.format(spinnaker_data_path))[1]}
+                      'Data': load_local_file('{0}'.format(spinnaker_data_path))}
     nest_data = {'To': '{0}'.format(os.path.split(nest_data_path)[1]),
                  'Data': load_local_file('{0}'.format(nest_data_path))}
     inputs = [code, collect_script, h5_script, spinnaker_data, nest_data]
@@ -88,12 +89,23 @@ def cch_vista_submit_task(inputdata_spinnaker, inputdata_nest, run_script,
                           'spinnaker_data': os.path.split(spinnaker_data_path)[1],
                           'nest_data': os.path.split(nest_data_path)[1],
                           'NUM_TASKS': str(num_tasks),
-    }
-    job['Resources'] = {'ArraySize': str(num_tasks), }
+                          }
+    job['Resources'] = {'ArraySize': str(num_tasks)}
     job['Execution environment'] = {'Name': 'Elephant',
-                                    'PostCommands': ['COLLECT']
-    }
+                                    'PostCommands': ['COLLECT']}
 
+    # (hackish) export to dCache for visualisation
+    results = ['viz_output_nest.h5', 'viz_output_nest.pkl', 
+            'viz_output_spinnaker.h5', 'viz_output_spinnaker.pkl']
+    exports = []
+    for result in results:
+        exports.append({'From' : 'results/'+result,
+        'To' : 'https://jade01.zam.kfa-juelich.de:2880/HBP/summit15/nest-elephant/'+result,
+         'Credentials': {'Username': 'jbiddiscombe', 'Password': 'Aithahs8'},
+         'FailOnError': 'false',
+        })
+    job['Exports'] = exports
+    
     # Submission
     base_url = unicore_client.get_sites()['JURECA']['url']
     job_url = unicore_client.submit(os.path.join(base_url, 'jobs'), job, auth,

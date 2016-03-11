@@ -84,7 +84,7 @@ max_lag = max_lag_bins * lag_res
 
 num_neurons = min(len(sts_spinnaker), len(sts_nest))
 num_ccs = (num_neurons ** 2 - num_neurons) / 2
- 
+
 cc = {}
 for dta in ['spinnaker', 'nest']:
     cc[dta] = {}
