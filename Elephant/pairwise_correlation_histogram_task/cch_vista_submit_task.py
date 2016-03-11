@@ -94,6 +94,18 @@ def cch_vista_submit_task(inputdata_spinnaker, inputdata_nest, run_script,
     job['Execution environment'] = {'Name': 'Elephant',
                                     'PostCommands': ['COLLECT']}
 
+    # (hackish) export to dCache for visualisation
+    results = ['viz_output_nest.h5', 'viz_output_nest.pkl', 
+            'viz_output_spinnaker.h5', 'viz_output_spinnaker.pkl']
+    exports = []
+    for result in results:
+        exports.append({'From' : 'results/'+result,
+        'To' : 'https://jade01.zam.kfa-juelich.de:2880/HBP/summit15/nest-elephant/'+result,
+         'Credentials': {'Username': 'jbiddiscombe', 'Password': 'Aithahs8'},
+         'FailOnError': 'false',
+        })
+    job['Exports'] = exports
+    
     # Submission
     base_url = unicore_client.get_sites()['JURECA']['url']
     job_url = unicore_client.submit(os.path.join(base_url, 'jobs'), job, auth,
