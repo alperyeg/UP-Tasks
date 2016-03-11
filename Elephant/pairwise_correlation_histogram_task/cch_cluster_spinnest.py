@@ -82,9 +82,9 @@ max_lag_bins = 200
 lag_res = 1 * pq.ms
 max_lag = max_lag_bins * lag_res
 
-num_neurons_spinnaker = len(sts_spinnaker)
-num_ccs = (num_neurons_spinnaker ** 2 - num_neurons_spinnaker) / 2
-
+num_neurons = min(len(sts_spinnaker), len(sts_nest))
+num_ccs = (num_neurons ** 2 - num_neurons) / 2
+ 
 cc = {}
 for dta in ['spinnaker', 'nest']:
     cc[dta] = {}
@@ -101,8 +101,8 @@ for dta in ['spinnaker', 'nest']:
 num_total_pairs = 0
 all_combos_unit_i = []
 all_combos_unit_j = []
-for ni in range(num_neurons_spinnaker):
-    for nj in range(ni, num_neurons_spinnaker):
+for ni in range(num_neurons):
+    for nj in range(ni, num_neurons):
         all_combos_unit_i.append(ni)
         all_combos_unit_j.append(nj)
         num_total_pairs += 1
