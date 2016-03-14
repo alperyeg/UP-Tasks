@@ -122,8 +122,9 @@ def cch_vista_submit_task(inputdata_spinnaker, inputdata_nest, run_script,
     for filename in results:
         content = unicore_client.get_file_content(
             workdir + "/files/results/" + filename, auth)
-        with open(filename, "w") as local_file:
-            local_file.write(content)
+        if filename.endswith(".h5"):
+            with open(filename, "w") as local_file:
+                local_file.write(content)
             fn = filename
 
     return cch_vista_submit_task.task.uri.save_file(mime_type='application/unknown',
