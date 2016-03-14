@@ -52,7 +52,7 @@ def cch_vista_submit_task(inputdata_spinnaker, inputdata_nest, run_script,
                 description: Number of tasks which will be run on the HPC.
 
         Returns:
-            res: application/unknown
+            res: application/vnd.juelich.bundle.elephant.data
     '''
     # Get paths
     spinnaker_data_path = cch_vista_submit_task.task.uri.get_file(
@@ -111,9 +111,26 @@ def cch_vista_submit_task(inputdata_spinnaker, inputdata_nest, run_script,
     job_url = unicore_client.submit(os.path.join(base_url, 'jobs'), job, auth,
                                     inputs)
     print "Submitting to {}".format(job_url)
-    unicore_client.wait_for_completion(job_url, auth)
+    unicore_client.wait_for_completion(job_url, auth, refresh_function = cch_vista_submit_task.task.uri.get_oauth_token)
 
+    # Get results and store them to task-local storage
+    # create bundle & export bundle
+    my_bundle_mimetype = "application/vnd.juelich.bundle.elephant.data"
+    bundle = cch_vista_submit_task.task.uri.build_bundle(my_bundle_mimetype)
 
+    workdir = unicore_client.get_working_directory(job_url, auth)
+    for filename in results:
+        content = unicore_client.get_file_content(workdir+"/files/results/"+filename,auth)
+        with open(result,"w") as local_file:
+              local_file.write(content)
+        bundle.add_file(src_path=filename,
+                        dst_path=os.path.join('contents', filename),
+                        bundle_path=filename,
+                        mime_type="application/unknown")
+
+    my_bundle_name = 'elephant_bundle'
+    return bundle.save(my_bundle_name)
+            
 if __name__ == '__main__':
     inputdata_spinnaker = tt.URI('application/unknown', 'spikes_L5E.h5')
     inputdata_nest = tt.URI('application/unknown', 'spikes_L5E.h5')
